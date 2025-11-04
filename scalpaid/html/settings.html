@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ScalpAid – Settings</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    />
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+<header class="top-nav">
+  <div class="logo">ScalpAid</div>
+  <nav class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="history.html">History</a>
+    <a href="insights.html">Insights</a>
+    <a href="settings.html">Settings</a>
+    <a href="profile.html" class="active">Profile</a>
+  </nav>
+</header>
+
+
+
+    <main>
+      <div class="card" style="grid-column: 1 / -1;">
+        <div class="page-title">Settings</div>
+        <div class="page-subtitle">Manage notifications and device connections.</div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Notifications</div>
+        <div class="settings-row">
+          <span>Daily Summary</span>
+          <button class="toggle-pill active">On</button>
+        </div>
+        <div class="settings-row">
+          <span>Moisture Alerts</span>
+          <button class="toggle-pill active">On</button>
+        </div>
+        <div class="settings-row">
+          <span>Tension Alerts</span>
+          <button class="toggle-pill">Off</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Headband Connection</div>
+        <div class="settings-row">
+          <span>Device</span>
+          <span style="font-size: 12px; color: var(--text-muted)">Band 01</span>
+        </div>
+        <div class="settings-row">
+          <span>Status</span>
+          <button class="toggle-pill active">Connected</button>
+        </div>
+      </div>
+    </main>
+
+    <div class="bottom-nav">
+      <a href="index.html">Home</a>
+      <a href="history.html">History</a>
+      <a href="insights.html">Insights</a>
+      <a href="settings.html" class="active">Settings</a>
+      <a href="profile.html">Profile</a>
+    </div>
+
+    <script src="../js/script.js"></script>
+  </body>
+</html>

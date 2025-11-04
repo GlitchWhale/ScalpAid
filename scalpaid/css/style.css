@@ -1,0 +1,480 @@
+/* =========================
+   ScalpAid Responsive Styles (v4)
+   ========================= */
+
+/* ---------- Design Tokens ---------- */
+
+:root {
+  --green-primary: #5b7553;
+  --green-accent: #7fa174;
+  --green-soft: #a4b598;
+
+  --bg-gradient-top: #e8ebe4;
+  --bg-gradient-bottom: #d4d9ce;
+
+  --bg-page: #f5f4f1;
+  --bg-card: #fafbf9;
+  --bg-card-alt: #f3f5f0;
+
+  --text-main: #2f342c;
+  --text-muted: #7a8373;
+
+  --radius-card: 18px;
+  --shadow-soft: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+/* ---------- Global Reset ---------- */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
+  background: linear-gradient(
+    180deg,
+    var(--bg-gradient-top) 0%,
+    var(--bg-gradient-bottom) 100%
+  );
+  color: var(--text-main);
+}
+
+/* A shell around content to control width on bigger screens */
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Top Navigation (desktop / large tablet) ---------- */
+
+.top-nav {
+  display: none; /* default: hidden on small screens */
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: rgba(250, 251, 249, 0.98);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.top-nav .logo {
+  font-size: clamp(18px, 2.2vw, 24px);
+  font-weight: 700;
+  color: var(--green-primary);
+}
+
+.top-nav .nav-links {
+  display: flex;
+  gap: 18px;
+}
+
+.top-nav .nav-links a {
+  text-decoration: none;
+  font-size: clamp(13px, 1.5vw, 15px);
+  color: var(--text-muted);
+  font-weight: 500;
+  padding-bottom: 3px;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.top-nav .nav-links a.active,
+.top-nav .nav-links a:hover {
+  color: var(--green-primary);
+  border-color: var(--green-primary);
+}
+
+/* Refined login button */
+
+.icon-button {
+  border: none;
+  background: linear-gradient(
+    135deg,
+    var(--green-accent),
+    var(--green-primary)
+  );
+  color: #ffffff;
+  border-radius: 999px;
+  padding: 7px 18px;
+  font-size: clamp(12px, 1.5vw, 14px);
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(91, 117, 83, 0.35);
+  transition: all 0.2s ease;
+}
+
+.icon-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(91, 117, 83, 0.4);
+}
+
+.icon-button:active {
+  transform: scale(0.97);
+  box-shadow: 0 3px 10px rgba(91, 117, 83, 0.3);
+}
+
+/* ---------- Main Layout ---------- */
+
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px 14px 80px;
+}
+
+/* Page headers */
+
+.page-title {
+  font-size: clamp(20px, 3vw, 26px);
+  font-weight: 700;
+  color: var(--green-primary);
+  margin-bottom: 6px;
+}
+
+.page-subtitle {
+  font-size: clamp(13px, 2vw, 15px);
+  color: var(--text-muted);
+  margin-bottom: 18px;
+}
+
+/* ---------- Cards ---------- */
+
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius-card);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-soft);
+  margin-bottom: 14px;
+}
+
+.card.alt {
+  background: var(--bg-card-alt);
+}
+
+.section-title {
+  font-weight: 600;
+  font-size: clamp(15px, 2vw, 18px);
+  margin-bottom: 8px;
+}
+
+/* ---------- Metrics (Home) ---------- */
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.metric-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.metric-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.metric-value {
+  font-size: clamp(16px, 2.2vw, 20px);
+  font-weight: 700;
+}
+
+.metric-status-chip {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #eef3ea;
+  color: var(--green-primary);
+}
+
+/* ---------- History Charts ---------- */
+
+.chart-wrapper {
+  position: relative;
+  height: 150px;
+}
+
+/* ====== Fix for Chart Height Growth ====== */
+.chart-wrapper {
+  position: relative;
+  width: 100%;
+  height: 220px; /* consistent height for all charts */
+}
+
+.card canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+
+/* ---------- Insights ---------- */
+
+.insight-item {
+  background: #ffffff;
+  border-radius: var(--radius-card);
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  box-shadow: var(--shadow-soft);
+}
+
+.insight-text-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 3px;
+}
+
+.insight-text-body {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ---------- Profile (closer to Figma) ---------- */
+
+.profile-header-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.profile-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    var(--green-accent),
+    var(--green-soft)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 22px;
+  box-shadow: 0 6px 18px rgba(91, 117, 83, 0.35);
+}
+
+.profile-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-meta-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.profile-meta-name {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.profile-details-list {
+  border-top: 1px solid #e0e4d8;
+  margin-top: 10px;
+  padding-top: 10px;
+}
+
+.profile-detail-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 4px 0;
+}
+
+.profile-detail-label {
+  color: var(--text-muted);
+}
+
+.profile-detail-value {
+  font-weight: 600;
+}
+
+/* Routine list */
+
+.routine-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.routine-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 10px 12px;
+  box-shadow: var(--shadow-soft);
+}
+
+.routine-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.routine-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ---------- Settings ---------- */
+
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e1e5da;
+  font-size: 13px;
+}
+
+.settings-row:last-child {
+  border-bottom: none;
+}
+
+.toggle-pill {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #d0d8c9;
+  background: #ffffff;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.toggle-pill.active {
+  background: var(--green-primary);
+  color: #ffffff;
+}
+
+/* ---------- Forms / Login ---------- */
+
+.input-field {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid #dde2d7;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(
+    135deg,
+    var(--green-accent),
+    var(--green-primary)
+  );
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(91, 117, 83, 0.35);
+}
+
+/* ---------- Bottom Nav (mobile / tablet) ---------- */
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 58px;
+  background: #ffffff;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 30;
+}
+
+.bottom-nav a {
+  text-decoration: none;
+  font-size: 12px;
+  color: #b0b8ac;
+}
+
+.bottom-nav a.active {
+  color: var(--green-primary);
+}
+
+/* ---------- Responsive Breakpoints ---------- */
+
+/* Small phones up to ~600px already covered by defaults */
+
+@media (min-width: 600px) {
+  main {
+    padding: 20px 20px 80px;
+    max-width: 700px;
+  }
+
+  .card {
+    padding: 18px 20px;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 900px) {
+  .top-nav {
+    display: flex;
+  }
+
+  .bottom-nav {
+    display: none;
+  }
+
+  main {
+    padding: 24px 24px 40px;
+    max-width: 950px;
+  }
+
+  /* layout possibilities: two-column grid for pages with multiple cards */
+  main.home-page,
+  main.history-page,
+  main.insights-page,
+  main.settings-page,
+  main.profile-page {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: 18px;
+  }
+
+  /* For sections that should span full width on desktop, you can add .full-span */
+  .full-span {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1200px) {
+  main {
+    max-width: 1100px;
+    padding: 28px 16px 40px;
+  }
+
+  .card {
+    padding: 20px 22px;
+  }
+}
