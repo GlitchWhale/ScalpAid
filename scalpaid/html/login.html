@@ -11,29 +11,66 @@
     <link rel="stylesheet" href="../css/style.css" />
   </head>
   <body>
- <header class="top-nav">
-  <div class="logo">ScalpAid</div>
-  <nav class="nav-links">
-    <a href="index.html">Home</a>
-    <a href="history.html">History</a>
-    <a href="insights.html">Insights</a>
-    <a href="settings.html">Settings</a>
-    <a href="profile.html" class="active">Profile</a>
-  </nav>
-</header>
+    <header class="top-nav">
+      <div class="logo">ScalpAid</div>
+      <nav class="nav-links">
+        <a href="Home">Home</a>
+        <a href="history.html">History</a>
+        <a href="insights.html">Insights</a>
+        <a href="settings.html">Settings</a>
+        <a href="profile.html" class="active">Profile</a>
+      </nav>
+    </header>
 
-
-    <main style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 60px;">
-      <div class="card" style="max-width: 400px; width: 100%;">
+    <main
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding-top: 60px;
+      "
+    >
+      <div class="card" style="max-width: 400px; width: 100%">
         <div class="page-title">Login</div>
         <p class="page-subtitle">Access your ScalpAid account.</p>
 
-        <form>
-          <input type="email" class="input-field" placeholder="Email" required />
-          <input type="password" class="input-field" placeholder="Password" required />
+        <form id="loginForm">
+          <input
+            type="email"
+            id="email"
+            class="input-field"
+            placeholder="Email"
+            required
+          />
+          <input
+            type="password"
+            id="password"
+            class="input-field"
+            placeholder="Password"
+            required
+          />
           <button class="btn-primary" type="submit">Log In</button>
         </form>
       </div>
     </main>
+
+    <script>
+      document.getElementById("loginForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value.trim();
+
+        
+        if (email && password) {
+          
+          alert("Login successful!");
+          window.location.href = "home.html"; 
+        } else {
+          alert("Please enter valid credentials.");
+        }
+      });
+    </script>
   </body>
 </html>

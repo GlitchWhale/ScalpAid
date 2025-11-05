@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ScalpAid – Register</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <header class="top-nav">
+    <div class="logo">ScalpAid</div>
+    <nav class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="login.html">Login</a>
+      <a href="register.html" class="active">Register</a>
+    </nav>
+  </header>
+
+  <main style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding-top:60px;">
+    <div class="card" style="max-width:400px; width:100%;">
+      <div class="page-title">Create Account</div>
+      <p class="page-subtitle">Join ScalpAid to start tracking your scalp health.</p>
+
+      <form id="registerForm">
+        <input type="text" class="input-field" placeholder="Full Name" required />
+        <input type="email" class="input-field" placeholder="Email" required />
+        <input type="password" class="input-field" placeholder="Password" required />
+        <input type="password" class="input-field" placeholder="Confirm Password" required />
+        <button class="btn-primary" type="submit">Register</button>
+      </form>
+
+      <p style="text-align:center; margin-top:10px;">
+        Already have an account? <a href="login.html">Log in</a>
+      </p>
+    </div>
+  </main>
+
+  <script src="../js/script.js"></script>
+  <script>
+    document.getElementById("registerForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      alert("Registration successful! (demo only)");
+      window.location.href = "login.html";
+    });
+  </script>
+</body>
+</html>
