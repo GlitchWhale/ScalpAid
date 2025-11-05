@@ -1,41 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ScalpAid – Insights</title>
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-    />
-    <link rel="stylesheet" href="../css/style.css" />
-  </head>
-  <body>
-  <header class="top-nav">
-  <div class="logo">ScalpAid</div>
-  <nav class="nav-links">
-    <a href="index.html">Home</a>
-    <a href="history.html">History</a>
-    <a href="insights.html">Insights</a>
-    <a href="settings.html">Settings</a>
-    <a href="profile.html" class="active">Profile</a>
-  </nav>
-</header>
-
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ScalpAid – Insights</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="top-nav">
+      <div class="logo">ScalpAid</div>
+      <nav class="nav-links">
+        <a href="home.html">Home</a>
+        <a href="history.html">History</a>
+        <a href="insights.html" class="active">Insights</a>
+        <a href="settings.html">Settings</a>
+        <a href="profile.html">Profile</a>
+      </nav>
+    </header>
 
     <main>
-      <div class="card" style="grid-column: 1 / -1;">
+      <div class="card full-span">
         <div class="page-title">Insights</div>
-        <div class="page-subtitle">
-          Your scalp health analysis and care recommendations.
-        </div>
+        <div class="page-subtitle">Your scalp health analysis and care recommendations.</div>
       </div>
 
       <div class="card">
         <div class="section-title">Summary</div>
-        <p style="font-size: 14px; color: var(--text-muted)">
-          Your scalp health readings this week are stable. Keep maintaining
-          balanced hydration and gentle styling habits.
+        <p style="font-size:14px; color:var(--text-muted)">
+          Your scalp health readings this week are stable. Keep maintaining balanced hydration and gentle styling habits.
         </p>
       </div>
 
@@ -43,21 +37,15 @@
         <div class="section-title">Insights</div>
         <div class="insight-item">
           <div class="insight-text-title">Temperature Stable</div>
-          <div class="insight-text-body">
-            No unusual spikes in scalp temperature detected this week.
-          </div>
+          <div class="insight-text-body">No unusual spikes in scalp temperature detected this week.</div>
         </div>
         <div class="insight-item">
           <div class="insight-text-title">Moisture Improving</div>
-          <div class="insight-text-body">
-            Average moisture increased 8% after using your conditioning spray.
-          </div>
+          <div class="insight-text-body">Average moisture increased 8% after using your conditioning spray.</div>
         </div>
         <div class="insight-item">
           <div class="insight-text-title">Tension Control</div>
-          <div class="insight-text-body">
-            Lower tension readings observed when using looser hairstyles.
-          </div>
+          <div class="insight-text-body">Lower tension readings observed when using looser hairstyles.</div>
         </div>
       </div>
 
@@ -65,25 +53,24 @@
         <div class="section-title">Recommendations</div>
         <div class="insight-item">
           <div class="insight-text-title">Hydration Tip</div>
-          <div class="insight-text-body">
-            Apply a scalp mist before bedtime if humidity drops below 50%.
-          </div>
+          <div class="insight-text-body">Apply a scalp mist before bedtime if humidity drops below 50%.</div>
         </div>
         <div class="insight-item">
           <div class="insight-text-title">Styling Tip</div>
-          <div class="insight-text-body">
-            Keep protective styles slightly looser to maintain good circulation.
-          </div>
+          <div class="insight-text-body">Keep protective styles slightly looser to maintain good circulation.</div>
         </div>
       </div>
     </main>
 
-    <div class="bottom-nav">
-      <a href="index.html">Home</a>
+    <nav class="bottom-nav">
+      <a href="home.html">Home</a>
       <a href="history.html">History</a>
       <a href="insights.html" class="active">Insights</a>
       <a href="settings.html">Settings</a>
       <a href="profile.html">Profile</a>
-    </div>
-  </body>
+    </nav>
+  </div>
+
+  <script src="../js/script.js"></script>
+</body>
 </html>

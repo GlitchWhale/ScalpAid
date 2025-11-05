@@ -1,69 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ScalpAid – History</title>
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-    />
-    <link rel="stylesheet" href="../css/style.css" />
-  </head>
-  <body>
-    <div class="app-shell">
-      <header class="top-nav">
-  <div class="logo">ScalpAid</div>
-  <nav class="nav-links">
-    <a href="index.html">Home</a>
-    <a href="history.html">History</a>
-    <a href="insights.html">Insights</a>
-    <a href="settings.html">Settings</a>
-    <a href="profile.html" class="active">Profile</a>
-  </nav>
-</header>
-
-
-      <main class="history-page">
-        <section class="card full-span">
-          <div class="page-title">History</div>
-          <div class="page-subtitle">
-            Review your scalp health trends from the last 7 days.
-          </div>
-        </section>
-
-        <section class="card">
-  <div class="section-title">Temperature (°C)</div>
-  <div class="chart-wrapper">
-    <canvas id="tempChart"></canvas>
-  </div>
-</section>
-
-<section class="card">
-  <div class="section-title">Tension (1–10)</div>
-  <div class="chart-wrapper">
-    <canvas id="tensionChart"></canvas>
-  </div>
-</section>
-
-<section class="card">
-  <div class="section-title">Moisture (%)</div>
-  <div class="chart-wrapper">
-    <canvas id="moistureChart"></canvas>
-  </div>
-</section>
-
-
-      <nav class="bottom-nav">
-        <a href="index.html">Home</a>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ScalpAid – History</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="top-nav">
+      <div class="logo">ScalpAid</div>
+      <nav class="nav-links">
+        <a href="home.html">Home</a>
         <a href="history.html" class="active">History</a>
         <a href="insights.html">Insights</a>
         <a href="settings.html">Settings</a>
         <a href="profile.html">Profile</a>
       </nav>
-    </div>
+    </header>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="../js/script.js"></script>
-  </body>
+    <main class="history-page">
+      <section class="card full-span">
+        <div class="page-title">History</div>
+        <div class="page-subtitle">
+          Review your scalp health trends from the last 7 days.
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-title">Temperature (°C)</div>
+        <div class="chart-wrapper">
+          <canvas id="tempChart"></canvas>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-title">Tension (1–10)</div>
+        <div class="chart-wrapper">
+          <canvas id="tensionChart"></canvas>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-title">Moisture (%)</div>
+        <div class="chart-wrapper">
+          <canvas id="moistureChart"></canvas>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav">
+      <a href="home.html">Home</a>
+      <a href="history.html" class="active">History</a>
+      <a href="insights.html">Insights</a>
+      <a href="settings.html">Settings</a>
+      <a href="profile.html">Profile</a>
+    </nav>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="../js/script.js"></script>
+</body>
 </html>
