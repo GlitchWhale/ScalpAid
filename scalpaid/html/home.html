@@ -8,82 +8,72 @@
   <link rel="stylesheet" href="../css/style.css" />
 </head>
 <body>
-  <div class="app-shell">
-    <header class="top-nav">
-      <div class="logo">ScalpAid</div>
-      <nav class="nav-links">
-        <a href="home.html" class="active">Home</a>
-        <a href="history.html">History</a>
-        <a href="insights.html">Insights</a>
-        <a href="settings.html">Settings</a>
-        <a href="profile.html">Profile</a>
-      </nav>
-    </header>
-
-    <main class="home-page">
-      <section class="card full-span">
-        <div class="page-title">Welcome Back</div>
-        <div class="page-subtitle">
-          Track your scalp’s health readings and see trends over time.
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="section-title">Current Readings</div>
-        <div class="metrics-grid">
-          <div class="metric-card">
-            <div>
-              <div class="metric-label">Temperature</div>
-              <div class="metric-value">36.5°C</div>
-            </div>
-            <span class="metric-status-chip">Normal</span>
-          </div>
-
-          <div class="metric-card">
-            <div>
-              <div class="metric-label">Tension</div>
-              <div class="metric-value">4 / 10</div>
-            </div>
-            <span class="metric-status-chip">Healthy</span>
-          </div>
-
-          <div class="metric-card">
-            <div>
-              <div class="metric-label">Moisture</div>
-              <div class="metric-value">62%</div>
-            </div>
-            <span class="metric-status-chip">Optimal</span>
-          </div>
-        </div>
-      </section>
-
-      <section class="card full-span">
-        <div class="section-title">Temperature Overview</div>
-        <div class="chart-wrapper">
-          <canvas id="tempChart"></canvas>
-        </div>
-      </section>
-
-      <section class="card full-span">
-        <div class="section-title">Daily Summary</div>
-        <p style="font-size:14px; color:var(--text-muted)">
-          • Temperature and tension readings are stable today.<br />
-          • Slight moisture drop after midday — consider rehydrating.<br />
-          • Scalp stress remains within optimal range.
-        </p>
-      </section>
-    </main>
-
-    <nav class="bottom-nav">
+<div class="app-shell">
+  <header class="top-nav">
+    <div class="logo">ScalpAid</div>
+    <nav class="nav-links">
       <a href="home.html" class="active">Home</a>
       <a href="history.html">History</a>
       <a href="insights.html">Insights</a>
       <a href="settings.html">Settings</a>
       <a href="profile.html">Profile</a>
+      <a href="#" id="logoutBtn">Logout</a>
     </nav>
-  </div>
+  </header>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="../js/script.js"></script>
+  <main class="home-page">
+    <section class="card full-span">
+      <div class="page-title">Welcome Back</div>
+      <div class="page-subtitle">Track your scalp’s health readings and see trends over time.</div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">Current Readings</div>
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div>
+            <div class="metric-label">Temperature</div>
+            <div class="metric-value" id="tempValue">--</div>
+          </div>
+          <span class="metric-status-chip" id="tempStatus">--</span>
+        </div>
+
+        <div class="metric-card">
+          <div>
+            <div class="metric-label">Tension</div>
+            <div class="metric-value" id="tensionValue">--</div>
+          </div>
+          <span class="metric-status-chip" id="tensionStatus">--</span>
+        </div>
+
+        <div class="metric-card">
+          <div>
+            <div class="metric-label">Moisture</div>
+            <div class="metric-value" id="moistureValue">--</div>
+          </div>
+          <span class="metric-status-chip" id="moistureStatus">--</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card full-span">
+      <div class="section-title">Temperature Overview</div>
+      <div class="chart-wrapper">
+        <canvas id="tempChart"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <a href="home.html" class="active">Home</a>
+    <a href="history.html">History</a>
+    <a href="insights.html">Insights</a>
+    <a href="settings.html">Settings</a>
+    <a href="profile.html">Profile</a>
+  </nav>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="../js/script.js"></script>
 </body>
 </html>

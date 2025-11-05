@@ -11,7 +11,7 @@
   <header class="top-nav">
     <div class="logo">ScalpAid</div>
     <nav class="nav-links">
-      <a href="home.html">Home</a>
+      <a href="index.html">Home</a>
       <a href="login.html">Login</a>
       <a href="register.html" class="active">Register</a>
     </nav>
@@ -23,10 +23,10 @@
       <p class="page-subtitle">Join ScalpAid to start tracking your scalp health.</p>
 
       <form id="registerForm">
-        <input type="text" class="input-field" placeholder="Full Name" required />
-        <input type="email" class="input-field" placeholder="Email" required />
-        <input type="password" class="input-field" placeholder="Password" required />
-        <input type="password" class="input-field" placeholder="Confirm Password" required />
+        <input type="text" id="name" class="input-field" placeholder="Full Name" required />
+        <input type="email" id="email" class="input-field" placeholder="Email" required />
+        <input type="password" id="password" class="input-field" placeholder="Password" required />
+        <input type="password" id="confirmPassword" class="input-field" placeholder="Confirm Password" required />
         <button class="btn-primary" type="submit">Register</button>
       </form>
 
@@ -36,11 +36,32 @@
     </div>
   </main>
 
-  <script src="../js/script.js"></script>
   <script>
     document.getElementById("registerForm").addEventListener("submit", (e) => {
       e.preventDefault();
-      alert("Registration successful! Redirecting to profile setup...");
+      const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const confirmPassword = document.getElementById("confirmPassword").value.trim();
+
+      if(password !== confirmPassword){
+        alert("Passwords do not match.");
+        return;
+      }
+
+      const newUser = {
+        name: name,
+        username: "",
+        hairType: "",
+        hairTexture: "",
+        memberSince: new Date().toLocaleDateString(),
+        temperature: null,
+        tension: null,
+        moisture: null
+      };
+
+      localStorage.setItem("loggedInUser", JSON.stringify(newUser));
+      alert("Registration successful!");
       window.location.href = "profile.html";
     });
   </script>

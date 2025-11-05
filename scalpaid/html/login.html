@@ -11,11 +11,9 @@
   <header class="top-nav">
     <div class="logo">ScalpAid</div>
     <nav class="nav-links">
-      <a href="home.html">Home</a>
-      <a href="history.html">History</a>
-      <a href="insights.html">Insights</a>
-      <a href="settings.html">Settings</a>
-      <a href="profile.html">Profile</a>
+      <a href="index.html">Home</a>
+      <a href="login.html" class="active">Login</a>
+      <a href="register.html">Register</a>
     </nav>
   </header>
 
@@ -37,9 +35,41 @@
       e.preventDefault();
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value.trim();
-      if (email && password) {
-        alert("Login successful!");
+
+      if(email && password){
+        // Define demo Brianna user
+        let user;
+        if(email.toLowerCase() === "brianna@example.com"){
+          user = {
+            email: "brianna@example.com",
+            name: "Briana Shen",
+            username: "@brianashen",
+            hairType: "Curly (3B)",
+            hairTexture: "Medium-Thick",
+            memberSince: "10/09/2024",
+            temperature: 36.5,
+            tension: 4,
+            moisture: 62
+          };
+        } else {
+          // Any other user: empty profile
+          user = {
+            email: email,
+            name: "",
+            username: "",
+            hairType: "",
+            hairTexture: "",
+            memberSince: "",
+            temperature: null,
+            tension: null,
+            moisture: null
+          };
+        }
+
+        // Store in localStorage
+        localStorage.setItem("loggedInUser", JSON.stringify(user));
         window.location.href = "home.html";
+
       } else {
         alert("Please enter valid credentials.");
       }
