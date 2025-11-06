@@ -6,6 +6,7 @@
   <title>ScalpAid – Home</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
   <link rel="stylesheet" href="../css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <div class="app-shell">
@@ -25,111 +26,128 @@
     <section class="card full-span">
       <div class="page-title">Welcome Back</div>
       <div class="page-subtitle">Track your scalp’s health readings and see trends over time.</div>
-      <section class="card health-overview">
-  <div class="page-title">Scalp Health Overview</div>
-  <div id="healthStatus" class="health-status normal">🟢 Normal</div>
-  <div class="readings">
-    <p><strong>Temperature:</strong> <span id="tempReading">36.5°C</span></p>
-    <p><strong>Moisture:</strong> <span id="moistureReading">62%</span></p>
-    <p><strong>Tension:</strong> <span id="tensionReading">4</span></p>
-  </div>
-</section>
 
+      <section class="card health-overview">
+        <div class="page-title">Scalp Health Overview</div>
+        <div id="healthStatus" class="health-status normal">🟢 Normal</div>
+        <div class="readings">
+          <p><strong>Temperature:</strong> <span id="tempReading">--</span></p>
+          <p><strong>Moisture:</strong> <span id="moistureReading">--</span></p>
+          <p><strong>Tension:</strong> <span id="tensionReading">--</span></p>
+        </div>
+      </section>
     </section>
 
-        <section class="card">
-          <div class="section-title">Current Readings</div>
-          <div class="metrics-grid">
-            <div class="metric-card">
-              <div>
-                <div class="metric-label">Temperature</div>
-                <div class="metric-value" id="tempValue">--</div>
-              </div>
-              <span class="metric-status-chip" id="tempStatus">--</span>
-            </div>
-
-            <div class="metric-card">
-              <div>
-                <div class="metric-label">Tension</div>
-                <div class="metric-value" id="tensionValue">--</div>
-              </div>
-              <span class="metric-status-chip" id="tensionStatus">--</span>
-            </div>
-
-            <div class="metric-card">
-              <div>
-                <div class="metric-label">Moisture</div>
-                <div class="metric-value" id="moistureValue">--</div>
-              </div>
-              <span class="metric-status-chip" id="moistureStatus">--</span>
-            </div>
-          </div>
-        </section>
-
+    <!-- Graphs -->
     <section class="card full-span">
       <div class="section-title">Temperature Overview</div>
-      <div class="chart-wrapper">
-        <canvas id="tempChart"></canvas>
-      </div>
+      <canvas id="tempChart"></canvas>
+    </section>
+
+    <section class="card full-span">
+      <div class="section-title">Moisture Overview</div>
+      <canvas id="moistureChart"></canvas>
+    </section>
+
+    <section class="card full-span">
+      <div class="section-title">Tension Overview</div>
+      <canvas id="tensionChart"></canvas>
     </section>
   </main>
 
-      <nav class="bottom-nav">
-        <a href="home.html" class="active">Home</a>
-        <a href="history.html">History</a>
-        <a href="insights.html">Insights</a>
-        <a href="settings.html">Settings</a>
-        <a href="profile.html">Profile</a>
-      </nav>
-    </div>
+  <nav class="bottom-nav">
+    <a href="home.html" class="active">Home</a>
+    <a href="history.html">History</a>
+    <a href="insights.html">Insights</a>
+    <a href="settings.html">Settings</a>
+    <a href="profile.html">Profile</a>
+  </nav>
+</div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="../js/script.js"></script>
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    // Simulated hardcoded Brianna readings
-    const readings = {
-      temperature: 36.5,
-      moisture: 62,
-      tension: 4
-    };
+document.addEventListener("DOMContentLoaded", () => {
+  // Initialize readings
+  let readings = {
+    temperature: 36.5,
+    moisture: 62,
+    tension: 4
+  };
 
-    // Update display
+  // Update readings every second
+  setInterval(() => {
+    // Random slight variation
+    readings.temperature = (36 + Math.random() * 2).toFixed(1);
+    readings.moisture = (50 + Math.random() * 20).toFixed(0);
+    readings.tension = (3 + Math.random() * 3).toFixed(1);
+
     document.getElementById("tempReading").textContent = `${readings.temperature}°C`;
     document.getElementById("moistureReading").textContent = `${readings.moisture}%`;
     document.getElementById("tensionReading").textContent = readings.tension;
 
-    // Evaluate status
-    let status = "Normal";
-    let emoji = "🟢";
-    let alerts = [];
-
-    if (readings.temperature < 35 || readings.temperature > 38) {
-      alerts.push("Temperature out of normal range");
+    // Status check
+    const statusEl = document.getElementById("healthStatus");
+    let status = "Normal", emoji = "🟢";
+    if (readings.temperature > 38 || readings.moisture < 30 || readings.tension > 6) {
       status = "Warning";
       emoji = "🟠";
     }
-    if (readings.moisture < 30 || readings.moisture > 80) {
-      alerts.push("Moisture level abnormal");
-      status = "Warning";
-      emoji = "🟠";
-    }
-    if (readings.tension > 6) {
-      alerts.push("Scalp tension high");
+    if (readings.tension > 7) {
       status = "Critical";
       emoji = "🔴";
     }
-
-    // Update health status
-    const statusEl = document.getElementById("healthStatus");
     statusEl.textContent = `${emoji} ${status}`;
-    statusEl.className = `health-status ${status.toLowerCase()}`;
+  }, 1000);
 
-    // Show notification alerts
-    if (alerts.length > 0) {
-      alerts.forEach(msg => alert(`⚠️ ${msg}`));
-    }
-  });
+  // Chart configuration helper
+  function createChart(ctx, label, color) {
+    return new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: Array.from({ length: 12 }, (_, i) => `${i + 1}h`),
+        datasets: [{
+          label,
+          data: Array.from({ length: 12 }, () => 35 + Math.random() * 3),
+          fill: true,
+          backgroundColor: color + "33",
+          borderColor: color,
+          borderWidth: 2,
+          tension: 0.4,
+          pointRadius: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: { beginAtZero: false, ticks: { color: "#333" } },
+          x: { ticks: { color: "#333" } }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+
+  // Create the three graphs
+  const tempChart = createChart(document.getElementById("tempChart"), "Temperature (°C)", "#FF6384");
+  const moistureChart = createChart(document.getElementById("moistureChart"), "Moisture (%)", "#36A2EB");
+  const tensionChart = createChart(document.getElementById("tensionChart"), "Tension", "#FFCE56");
+
+  // Add new data point every 20 seconds
+  setInterval(() => {
+    const addData = (chart, value) => {
+      chart.data.labels.push(`${chart.data.labels.length + 1}h`);
+      chart.data.datasets[0].data.push(value);
+      if (chart.data.datasets[0].data.length > 12) {
+        chart.data.labels.shift();
+        chart.data.datasets[0].data.shift();
+      }
+      chart.update();
+    };
+
+    addData(tempChart, parseFloat(readings.temperature));
+    addData(moistureChart, parseFloat(readings.moisture));
+    addData(tensionChart, parseFloat(readings.tension));
+  }, 20000);
+});
 </script>
 
 </body>
