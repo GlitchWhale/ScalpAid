@@ -1,102 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ScalpAid – Profile</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
-  <link rel="stylesheet" href="../css/style.css" />
-</head>
-<body>
-<div class="app-shell">
-  <header class="top-nav">
-    <div class="logo">ScalpAid</div>
-    <nav class="nav-links">
-      <a href="home.html">Home</a>
-      <a href="history.html">History</a>
-      <a href="insights.html">Insights</a>
-      <a href="settings.html">Settings</a>
-      <a href="profile.html" class="active">Profile</a>
-      <a href="#" id="logoutBtn">Logout</a>
-    </nav>
-  </header>
-
-  <main class="profile-page">
-    <section class="card full-span">
-      <div class="page-title">Profile</div>
-      <div class="page-subtitle">Your scalp health overview and personalized tracking goals.</div>
-    </section>
-
-    <section class="card">
-      <div class="profile-header-row">
-        <div class="profile-avatar" id="profileAvatar">--</div>
-        <div class="profile-meta">
-          <div class="profile-meta-label">ScalpAid Profile</div>
-          <div class="profile-meta-name" id="profileName">--</div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ScalpAid – Profile</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    />
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="top-nav">
+        <div class="logo" style="display: flex; align-items: center; gap: 10px">
+          <img
+            src="../images/Logo.png"
+            alt="ScalpAid Logo"
+            style="height: 60px; width: auto"
+          />
+          <span style="font-weight: 700; font-size: 1.5rem; color: #5e7554">
+            ScalpAid
+          </span>
         </div>
-      </div>
+        <nav class="nav-links">
+          <a href="home.html">Home</a>
+          <a href="history.html">History</a>
+          <a href="insights.html">Insights</a>
+          <a href="settings.html">Settings</a>
+          <a href="profile.html" class="active">Profile</a>
+          <a href="#" id="logoutBtn">Logout</a>
+        </nav>
+      </header>
 
-      <div class="profile-details-list">
-        <div class="profile-detail-row">
-          <span class="profile-detail-label">Username</span>
-          <span class="profile-detail-value" id="profileUsername">--</span>
-        </div>
-        <div class="profile-detail-row">
-          <span class="profile-detail-label">Goal</span>
-          <span class="profile-detail-value" id="profileGoal">--</span>
-        </div>
-        <div class="profile-detail-row">
-          <span class="profile-detail-label">Hair Type</span>
-          <span class="profile-detail-value" id="profileHairType">--</span>
-        </div>
-        <div class="profile-detail-row">
-          <span class="profile-detail-label">Hair Texture</span>
-          <span class="profile-detail-value" id="profileHairTexture">--</span>
-        </div>
-        <div class="profile-detail-row">
-          <span class="profile-detail-label">Member Since</span>
-          <span class="profile-detail-value" id="profileMemberSince">--</span>
-        </div>
-      </div>
+      <main class="profile-page">
+        <section class="card full-span">
+          <div class="page-title">Profile</div>
+          <div class="page-subtitle">
+            Your scalp health overview and personalized tracking goals.
+          </div>
+        </section>
 
-      <!-- Prevent Alopecia Section -->
-      <div class="goal-section" id="preventSection" style="display:none;">
-        <div class="section-title">Prevent Alopecia Focus</div>
-        <p>Tracking early scalp tension and moisture balance helps identify stress indicators that could lead to hair loss.</p>
-      </div>
+        <section class="card">
+          <div class="profile-header-row">
+            <div class="profile-avatar" id="profileAvatar">--</div>
+            <div class="profile-meta">
+              <div class="profile-meta-label">ScalpAid Profile</div>
+              <div class="profile-meta-name" id="profileName">--</div>
+            </div>
+          </div>
 
-      <!-- Manage Alopecia Section -->
-      <div class="goal-section" id="manageSection" style="display:none;">
-        <div class="section-title">Manage Alopecia Focus</div>
-        <label>Current Treatment Routine</label>
-        <input type="text" class="input-field" id="treatmentRoutine" placeholder="E.g., Minoxidil, PRP, etc." />
-        <label>Areas of Concern</label>
-        <textarea class="input-field" id="concernAreas" placeholder="Describe affected areas or scalp sensitivity..."></textarea>
-      </div>
+          <div class="profile-details-list">
+            <div class="profile-detail-row">
+              <span class="profile-detail-label">Username</span>
+              <span class="profile-detail-value" id="profileUsername">--</span>
+            </div>
+            <div class="profile-detail-row">
+              <span class="profile-detail-label">Goal</span>
+              <span class="profile-detail-value" id="profileGoal">--</span>
+            </div>
+            <div class="profile-detail-row">
+              <span class="profile-detail-label">Hair Type</span>
+              <span class="profile-detail-value" id="profileHairType">--</span>
+            </div>
+            <div class="profile-detail-row">
+              <span class="profile-detail-label">Hair Texture</span>
+              <span class="profile-detail-value" id="profileHairTexture"
+                >--</span
+              >
+            </div>
+            <div class="profile-detail-row">
+              <span class="profile-detail-label">Member Since</span>
+              <span class="profile-detail-value" id="profileMemberSince"
+                >--</span
+              >
+            </div>
+          </div>
 
-      <!-- Improve Hair Health Section -->
-      <div class="goal-section" id="improveSection" style="display:none;">
-        <div class="section-title">Hair Health Focus</div>
-        <label>Preferred Hair Products</label>
-        <input type="text" class="input-field" id="productsUsed" placeholder="E.g., sulfate-free shampoo, natural oils..." />
-        <label>Scalp Care Frequency</label>
-        <input type="number" class="input-field" id="careFrequency" placeholder="Times per week" />
-      </div>
+          <!-- Prevent Alopecia Section -->
+          <div class="goal-section" id="preventSection" style="display: none">
+            <div class="section-title">Prevent Alopecia Focus</div>
+            <p>
+              Tracking early scalp tension and moisture balance helps identify
+              stress indicators that could lead to hair loss.
+            </p>
+          </div>
 
-      <button id="editProfileBtn">Edit Profile</button>
-      <button id="saveProfileBtn" style="display:none;">Save</button>
-    </section>
-  </main>
+          <!-- Manage Alopecia Section -->
+          <div class="goal-section" id="manageSection" style="display: none">
+            <div class="section-title">Manage Alopecia Focus</div>
+            <label>Current Treatment Routine</label>
+            <input
+              type="text"
+              class="input-field"
+              id="treatmentRoutine"
+              placeholder="E.g., Minoxidil, PRP, etc."
+            />
+            <label>Areas of Concern</label>
+            <textarea
+              class="input-field"
+              id="concernAreas"
+              placeholder="Describe affected areas or scalp sensitivity..."
+            ></textarea>
+          </div>
 
-  <nav class="bottom-nav">
-    <a href="home.html">Home</a>
-    <a href="history.html">History</a>
-    <a href="insights.html">Insights</a>
-    <a href="settings.html">Settings</a>
-    <a href="profile.html" class="active">Profile</a>
-  </nav>
-</div>
+          <!-- Improve Hair Health Section -->
+          <div class="goal-section" id="improveSection" style="display: none">
+            <div class="section-title">Hair Health Focus</div>
+            <label>Preferred Hair Products</label>
+            <input
+              type="text"
+              class="input-field"
+              id="productsUsed"
+              placeholder="E.g., sulfate-free shampoo, natural oils..."
+            />
+            <label>Scalp Care Frequency</label>
+            <input
+              type="number"
+              class="input-field"
+              id="careFrequency"
+              placeholder="Times per week"
+            />
+          </div>
 
-<script src="../js/script.js"></script>
-</body>
+          <button id="editProfileBtn">Edit Profile</button>
+          <button id="saveProfileBtn" style="display: none">Save</button>
+        </section>
+      </main>
+
+      <nav class="bottom-nav">
+        <a href="home.html">Home</a>
+        <a href="history.html">History</a>
+        <a href="insights.html">Insights</a>
+        <a href="settings.html">Settings</a>
+        <a href="profile.html" class="active">Profile</a>
+      </nav>
+    </div>
+
+    <script src="../js/script.js"></script>
+  </body>
 </html>
