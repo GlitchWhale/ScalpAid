@@ -1,61 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ScalpAid – Home</title>
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-    />
-    <link rel="stylesheet" href="../css/style.css" />
-  </head>
-  <body>
-    <div class="app-shell">
-      <header class="top-nav">
-        <div class="logo" style="display: flex; align-items: center; gap: 10px">
-          <img
-            src="../images/Logo.png"
-            alt="ScalpAid Logo"
-            style="height: 60px; width: auto"
-          />
-          <span style="font-weight: 700; font-size: 1.5rem; color: #5e7554">
-            ScalpAid
-          </span>
-        </div>
-        <nav class="nav-links">
-          <a href="home.html" class="active">Home</a>
-          <a href="history.html">History</a>
-          <a href="insights.html">Insights</a>
-          <a href="settings.html">Settings</a>
-          <a href="profile.html">Profile</a>
-          <a href="#" id="logoutBtn">Logout</a>
-        </nav>
-      </header>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ScalpAid – Home</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+<div class="app-shell">
+  <header class="top-nav">
+    <div class="logo">ScalpAid</div>
+    <nav class="nav-links">
+      <a href="home.html" class="active">Home</a>
+      <a href="history.html">History</a>
+      <a href="insights.html">Insights</a>
+      <a href="settings.html">Settings</a>
+      <a href="profile.html">Profile</a>
+      <a href="#" id="logoutBtn">Logout</a>
+    </nav>
+  </header>
 
-      <main class="home-page">
-        <section class="card full-span">
-          <div class="page-title">Welcome Back</div>
-          <div class="page-subtitle">
-            Track your scalp’s health readings and see trends over time.
-          </div>
-          <section class="card health-overview">
-            <div class="page-title">Scalp Health Overview</div>
-            <div id="healthStatus" class="health-status normal">🟢 Normal</div>
-            <div class="readings">
-              <p>
-                <strong>Temperature:</strong>
-                <span id="tempReading">36.5°C</span>
-              </p>
-              <p>
-                <strong>Moisture:</strong> <span id="moistureReading">62%</span>
-              </p>
-              <p>
-                <strong>Tension:</strong> <span id="tensionReading">4</span>
-              </p>
-            </div>
-          </section>
-        </section>
+  <main class="home-page">
+    <section class="card full-span">
+      <div class="page-title">Welcome Back</div>
+      <div class="page-subtitle">Track your scalp’s health readings and see trends over time.</div>
+      <section class="card health-overview">
+  <div class="page-title">Scalp Health Overview</div>
+  <div id="healthStatus" class="health-status normal">🟢 Normal</div>
+  <div class="readings">
+    <p><strong>Temperature:</strong> <span id="tempReading">36.5°C</span></p>
+    <p><strong>Moisture:</strong> <span id="moistureReading">62%</span></p>
+    <p><strong>Tension:</strong> <span id="tensionReading">4</span></p>
+  </div>
+</section>
+
+    </section>
 
         <section class="card">
           <div class="section-title">Current Readings</div>
@@ -86,13 +66,13 @@
           </div>
         </section>
 
-        <section class="card full-span">
-          <div class="section-title">Temperature Overview</div>
-          <div class="chart-wrapper">
-            <canvas id="tempChart"></canvas>
-          </div>
-        </section>
-      </main>
+    <section class="card full-span">
+      <div class="section-title">Temperature Overview</div>
+      <div class="chart-wrapper">
+        <canvas id="tempChart"></canvas>
+      </div>
+    </section>
+  </main>
 
       <nav class="bottom-nav">
         <a href="home.html" class="active">Home</a>
@@ -103,58 +83,54 @@
       </nav>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="../js/script.js"></script>
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        // Simulated hardcoded Brianna readings
-        const readings = {
-          temperature: 36.5,
-          moisture: 62,
-          tension: 4,
-        };
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="../js/script.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // Simulated hardcoded Brianna readings
+    const readings = {
+      temperature: 36.5,
+      moisture: 62,
+      tension: 4
+    };
 
-        // Update display
-        document.getElementById(
-          "tempReading"
-        ).textContent = `${readings.temperature}°C`;
-        document.getElementById(
-          "moistureReading"
-        ).textContent = `${readings.moisture}%`;
-        document.getElementById("tensionReading").textContent =
-          readings.tension;
+    // Update display
+    document.getElementById("tempReading").textContent = `${readings.temperature}°C`;
+    document.getElementById("moistureReading").textContent = `${readings.moisture}%`;
+    document.getElementById("tensionReading").textContent = readings.tension;
 
-        // Evaluate status
-        let status = "Normal";
-        let emoji = "🟢";
-        let alerts = [];
+    // Evaluate status
+    let status = "Normal";
+    let emoji = "🟢";
+    let alerts = [];
 
-        if (readings.temperature < 35 || readings.temperature > 38) {
-          alerts.push("Temperature out of normal range");
-          status = "Warning";
-          emoji = "🟠";
-        }
-        if (readings.moisture < 30 || readings.moisture > 80) {
-          alerts.push("Moisture level abnormal");
-          status = "Warning";
-          emoji = "🟠";
-        }
-        if (readings.tension > 6) {
-          alerts.push("Scalp tension high");
-          status = "Critical";
-          emoji = "🔴";
-        }
+    if (readings.temperature < 35 || readings.temperature > 38) {
+      alerts.push("Temperature out of normal range");
+      status = "Warning";
+      emoji = "🟠";
+    }
+    if (readings.moisture < 30 || readings.moisture > 80) {
+      alerts.push("Moisture level abnormal");
+      status = "Warning";
+      emoji = "🟠";
+    }
+    if (readings.tension > 6) {
+      alerts.push("Scalp tension high");
+      status = "Critical";
+      emoji = "🔴";
+    }
 
-        // Update health status
-        const statusEl = document.getElementById("healthStatus");
-        statusEl.textContent = `${emoji} ${status}`;
-        statusEl.className = `health-status ${status.toLowerCase()}`;
+    // Update health status
+    const statusEl = document.getElementById("healthStatus");
+    statusEl.textContent = `${emoji} ${status}`;
+    statusEl.className = `health-status ${status.toLowerCase()}`;
 
-        // Show notification alerts
-        if (alerts.length > 0) {
-          alerts.forEach((msg) => alert(`⚠️ ${msg}`));
-        }
-      });
-    </script>
-  </body>
+    // Show notification alerts
+    if (alerts.length > 0) {
+      alerts.forEach(msg => alert(`⚠️ ${msg}`));
+    }
+  });
+</script>
+
+</body>
 </html>
