@@ -25,6 +25,16 @@
     <section class="card full-span">
       <div class="page-title">Welcome Back</div>
       <div class="page-subtitle">Track your scalp’s health readings and see trends over time.</div>
+      <section class="card health-overview">
+  <div class="page-title">Scalp Health Overview</div>
+  <div id="healthStatus" class="health-status normal">🟢 Normal</div>
+  <div class="readings">
+    <p><strong>Temperature:</strong> <span id="tempReading">36.5°C</span></p>
+    <p><strong>Moisture:</strong> <span id="moistureReading">62%</span></p>
+    <p><strong>Tension:</strong> <span id="tensionReading">4</span></p>
+  </div>
+</section>
+
     </section>
 
     <section class="card">
@@ -75,5 +85,52 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="../js/script.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // Simulated hardcoded Brianna readings
+    const readings = {
+      temperature: 36.5,
+      moisture: 62,
+      tension: 4
+    };
+
+    // Update display
+    document.getElementById("tempReading").textContent = `${readings.temperature}°C`;
+    document.getElementById("moistureReading").textContent = `${readings.moisture}%`;
+    document.getElementById("tensionReading").textContent = readings.tension;
+
+    // Evaluate status
+    let status = "Normal";
+    let emoji = "🟢";
+    let alerts = [];
+
+    if (readings.temperature < 35 || readings.temperature > 38) {
+      alerts.push("Temperature out of normal range");
+      status = "Warning";
+      emoji = "🟠";
+    }
+    if (readings.moisture < 30 || readings.moisture > 80) {
+      alerts.push("Moisture level abnormal");
+      status = "Warning";
+      emoji = "🟠";
+    }
+    if (readings.tension > 6) {
+      alerts.push("Scalp tension high");
+      status = "Critical";
+      emoji = "🔴";
+    }
+
+    // Update health status
+    const statusEl = document.getElementById("healthStatus");
+    statusEl.textContent = `${emoji} ${status}`;
+    statusEl.className = `health-status ${status.toLowerCase()}`;
+
+    // Show notification alerts
+    if (alerts.length > 0) {
+      alerts.forEach(msg => alert(`⚠️ ${msg}`));
+    }
+  });
+</script>
+
 </body>
 </html>

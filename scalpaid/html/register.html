@@ -27,6 +27,16 @@
         <input type="email" id="email" class="input-field" placeholder="Email" required />
         <input type="password" id="password" class="input-field" placeholder="Password" required />
         <input type="password" id="confirmPassword" class="input-field" placeholder="Confirm Password" required />
+
+        <!-- NEW GOAL SELECTION FIELD -->
+        <label for="goal" class="input-label" style="margin-top:10px;">Main Goal</label>
+        <select id="goal" class="input-field" required>
+          <option value="" disabled selected>Select your main goal</option>
+          <option value="Prevent Alopecia">Prevent Alopecia (for healthy scalps)</option>
+          <option value="Manage Alopecia">Manage Alopecia (for those with hair loss)</option>
+          <option value="Improve Hair Health">Improve Overall Hair Health</option>
+        </select>
+
         <button class="btn-primary" type="submit">Register</button>
       </form>
 
@@ -43,21 +53,33 @@
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value.trim();
       const confirmPassword = document.getElementById("confirmPassword").value.trim();
+      const goal = document.getElementById("goal").value;
 
-      if(password !== confirmPassword){
+      if (password !== confirmPassword) {
         alert("Passwords do not match.");
         return;
       }
 
+      if (!goal) {
+        alert("Please select your main goal.");
+        return;
+      }
+
+      // Store goal globally for later use (profile tailoring)
+      localStorage.setItem("userGoal", goal);
+
       const newUser = {
+        email: email,
         name: name,
-        username: "",
+        username: "@" + email.split("@")[0],
+        goal: goal,
         hairType: "",
         hairTexture: "",
         memberSince: new Date().toLocaleDateString(),
         temperature: null,
         tension: null,
-        moisture: null
+        moisture: null,
+        history: { temp: [], tension: [], moisture: [] }
       };
 
       localStorage.setItem("loggedInUser", JSON.stringify(newUser));

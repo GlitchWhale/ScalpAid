@@ -24,7 +24,7 @@
   <main class="profile-page">
     <section class="card full-span">
       <div class="page-title">Profile</div>
-      <div class="page-subtitle">Your ScalpAid profile and health tracking overview.</div>
+      <div class="page-subtitle">Your scalp health overview and personalized tracking goals.</div>
     </section>
 
     <section class="card">
@@ -36,10 +36,14 @@
         </div>
       </div>
 
-      <div class="profile-details-list" id="profileDetails">
+      <div class="profile-details-list">
         <div class="profile-detail-row">
           <span class="profile-detail-label">Username</span>
           <span class="profile-detail-value" id="profileUsername">--</span>
+        </div>
+        <div class="profile-detail-row">
+          <span class="profile-detail-label">Goal</span>
+          <span class="profile-detail-value" id="profileGoal">--</span>
         </div>
         <div class="profile-detail-row">
           <span class="profile-detail-label">Hair Type</span>
@@ -54,6 +58,31 @@
           <span class="profile-detail-value" id="profileMemberSince">--</span>
         </div>
       </div>
+
+      <!-- Prevent Alopecia Section -->
+      <div class="goal-section" id="preventSection" style="display:none;">
+        <div class="section-title">Prevent Alopecia Focus</div>
+        <p>Tracking early scalp tension and moisture balance helps identify stress indicators that could lead to hair loss.</p>
+      </div>
+
+      <!-- Manage Alopecia Section -->
+      <div class="goal-section" id="manageSection" style="display:none;">
+        <div class="section-title">Manage Alopecia Focus</div>
+        <label>Current Treatment Routine</label>
+        <input type="text" class="input-field" id="treatmentRoutine" placeholder="E.g., Minoxidil, PRP, etc." />
+        <label>Areas of Concern</label>
+        <textarea class="input-field" id="concernAreas" placeholder="Describe affected areas or scalp sensitivity..."></textarea>
+      </div>
+
+      <!-- Improve Hair Health Section -->
+      <div class="goal-section" id="improveSection" style="display:none;">
+        <div class="section-title">Hair Health Focus</div>
+        <label>Preferred Hair Products</label>
+        <input type="text" class="input-field" id="productsUsed" placeholder="E.g., sulfate-free shampoo, natural oils..." />
+        <label>Scalp Care Frequency</label>
+        <input type="number" class="input-field" id="careFrequency" placeholder="Times per week" />
+      </div>
+
       <button id="editProfileBtn">Edit Profile</button>
       <button id="saveProfileBtn" style="display:none;">Save</button>
     </section>

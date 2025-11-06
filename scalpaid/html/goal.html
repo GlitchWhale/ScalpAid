@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ScalpAid – Choose Your Goal</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <header class="top-nav">
+    <div class="logo">ScalpAid</div>
+  </header>
+
+  <main style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding-top:60px;">
+    <div class="card" style="max-width:400px; width:100%; text-align:center;">
+      <div class="page-title">Select Your Goal</div>
+      <p class="page-subtitle">Let’s tailor your scalp insights to your needs.</p>
+
+      <button class="btn-primary" style="margin-top:10px;" onclick="selectGoal('Prevent Alopecia')">🌱 Prevent Alopecia</button>
+      <button class="btn-primary" style="margin-top:10px;" onclick="selectGoal('Manage Alopecia')">💆 Manage Alopecia</button>
+      <button class="btn-primary" style="margin-top:10px;" onclick="selectGoal('Improve Hair Health')">🧴 Improve Hair Health</button>
+
+      <p style="margin-top:20px; font-size:13px; color:var(--text-muted);">
+        You can always change this later in your profile settings.
+      </p>
+    </div>
+  </main>
+
+  <script>
+    function selectGoal(goal) {
+      localStorage.setItem("userGoal", goal);
+      window.location.href = "register.html";
+    }
+  </script>
+</body>
+</html>
