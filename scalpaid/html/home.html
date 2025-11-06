@@ -6,6 +6,68 @@
   <title>ScalpAid – Home</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
   <link rel="stylesheet" href="../css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Live streaming indicator */
+    .live-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+      color: #2ecc71;
+      margin-top: 0.5rem;
+      animation: fadeIn 1s ease-in-out;
+    }
+    .pulse-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #2ecc71;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.6; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Metric animation */
+    .metric-value {
+      transition: color 0.3s, transform 0.3s;
+    }
+    .metric-value.updated {
+      color: #2ecc71;
+      transform: scale(1.1);
+    }
+
+    /* Toast Notifications */
+    .toast-container {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      z-index: 9999;
+    }
+    .toast {
+      background: #e74c3c;
+      color: white;
+      padding: 0.8rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 500;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      transform: translateY(30px);
+      opacity: 0;
+      animation: slideIn 0.4s forwards;
+    }
+    @keyframes slideIn {
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+  </style>
 </head>
 <body>
 <div class="app-shell">
@@ -25,16 +87,20 @@
     <section class="card full-span">
       <div class="page-title">Welcome Back</div>
       <div class="page-subtitle">Track your scalp’s health readings and see trends over time.</div>
-      <section class="card health-overview">
-  <div class="page-title">Scalp Health Overview</div>
-  <div id="healthStatus" class="health-status normal">🟢 Normal</div>
-  <div class="readings">
-    <p><strong>Temperature:</strong> <span id="tempReading">36.5°C</span></p>
-    <p><strong>Moisture:</strong> <span id="moistureReading">62%</span></p>
-    <p><strong>Tension:</strong> <span id="tensionReading">4</span></p>
-  </div>
-</section>
+      <div class="live-indicator">
+        <div class="pulse-dot"></div>
+        <span>Streaming from headband...</span>
+      </div>
 
+      <section class="card health-overview">
+        <div class="page-title">Scalp Health Overview</div>
+        <div id="healthStatus" class="health-status normal">🟢 Normal</div>
+        <div class="readings">
+          <p><strong>Temperature:</strong> <span id="tempReading">36.5°C</span></p>
+          <p><strong>Moisture:</strong> <span id="moistureReading">62%</span></p>
+          <p><strong>Tension:</strong> <span id="tensionReading">4</span></p>
+        </div>
+      </section>
     </section>
 
     <section class="card">
@@ -66,13 +132,26 @@
       </div>
     </section>
 
+    <!-- Temperature Chart -->
     <section class="card full-span">
-      <div class="section-title">Temperature Overview</div>
-      <div class="chart-wrapper">
-        <canvas id="tempChart"></canvas>
-      </div>
+      <div class="section-title">Temperature (Hourly)</div>
+      <div class="chart-wrapper"><canvas id="tempChart"></canvas></div>
+    </section>
+
+    <!-- Moisture Chart -->
+    <section class="card full-span">
+      <div class="section-title">Moisture (Hourly)</div>
+      <div class="chart-wrapper"><canvas id="moistureChart"></canvas></div>
+    </section>
+
+    <!-- Tension Chart -->
+    <section class="card full-span">
+      <div class="section-title">Tension (Hourly)</div>
+      <div class="chart-wrapper"><canvas id="tensionChart"></canvas></div>
     </section>
   </main>
+
+  <div class="toast-container" id="toastContainer"></div>
 
   <nav class="bottom-nav">
     <a href="home.html" class="active">Home</a>
@@ -83,54 +162,81 @@
   </nav>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="../js/script.js"></script>
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    // Simulated hardcoded Brianna readings
-    const readings = {
-      temperature: 36.5,
-      moisture: 62,
-      tension: 4
-    };
+document.addEventListener("DOMContentLoaded", () => {
+  let readings = { temperature: 36.5, moisture: 62, tension: 4 };
 
-    // Update display
-    document.getElementById("tempReading").textContent = `${readings.temperature}°C`;
-    document.getElementById("moistureReading").textContent = `${readings.moisture}%`;
-    document.getElementById("tensionReading").textContent = readings.tension;
+  function animateValueChange(id, value) {
+    const el = document.getElementById(id);
+    el.textContent = value;
+    el.classList.add("updated");
+    setTimeout(() => el.classList.remove("updated"), 400);
+  }
 
-    // Evaluate status
-    let status = "Normal";
-    let emoji = "🟢";
-    let alerts = [];
+  function createToast(message) {
+    const container = document.getElementById("toastContainer");
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.textContent = `⚠️ ${message}`;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+  }
 
-    if (readings.temperature < 35 || readings.temperature > 38) {
-      alerts.push("Temperature out of normal range");
-      status = "Warning";
-      emoji = "🟠";
+  function createChart(ctx, label, color) {
+    return new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: Array.from({length: 12}, (_, i) => `${i+1}h`),
+        datasets: [{
+          label: label,
+          data: Array(12).fill(null),
+          borderColor: color,
+          tension: 0.4,
+          fill: false
+        }]
+      },
+      options: { responsive: true, animation: { duration: 500 }, scales: { y: { beginAtZero: false } } }
+    });
+  }
+
+  const tempChart = createChart(document.getElementById("tempChart"), "Temperature (°C)", "#e67e22");
+  const moistureChart = createChart(document.getElementById("moistureChart"), "Moisture (%)", "#3498db");
+  const tensionChart = createChart(document.getElementById("tensionChart"), "Tension", "#9b59b6");
+
+  let hourIndex = 0;
+
+  function updateReadings() {
+    readings.temperature = (36 + Math.random() * 2).toFixed(1);
+    readings.moisture = (55 + Math.random() * 15).toFixed(0);
+    readings.tension = (3 + Math.random() * 3).toFixed(1);
+
+    animateValueChange("tempReading", `${readings.temperature}°C`);
+    animateValueChange("moistureReading", `${readings.moisture}%`);
+    animateValueChange("tensionReading", readings.tension);
+
+    animateValueChange("tempValue", `${readings.temperature}°C`);
+    animateValueChange("moistureValue", `${readings.moisture}%`);
+    animateValueChange("tensionValue", readings.tension);
+
+    // Alert logic
+    if (readings.temperature > 38) createToast("Scalp temperature too high!");
+    if (readings.moisture < 40) createToast("Scalp moisture too low!");
+    if (readings.tension > 6) createToast("Scalp tension too high!");
+
+    // Chart update
+    if (hourIndex < 12 && Date.now() % 10000 < 1000) {
+      tempChart.data.datasets[0].data[hourIndex] = readings.temperature;
+      moistureChart.data.datasets[0].data[hourIndex] = readings.moisture;
+      tensionChart.data.datasets[0].data[hourIndex] = readings.tension;
+      tempChart.update(); moistureChart.update(); tensionChart.update();
+      hourIndex++;
     }
-    if (readings.moisture < 30 || readings.moisture > 80) {
-      alerts.push("Moisture level abnormal");
-      status = "Warning";
-      emoji = "🟠";
-    }
-    if (readings.tension > 6) {
-      alerts.push("Scalp tension high");
-      status = "Critical";
-      emoji = "🔴";
-    }
+  }
 
-    // Update health status
-    const statusEl = document.getElementById("healthStatus");
-    statusEl.textContent = `${emoji} ${status}`;
-    statusEl.className = `health-status ${status.toLowerCase()}`;
-
-    // Show notification alerts
-    if (alerts.length > 0) {
-      alerts.forEach(msg => alert(`⚠️ ${msg}`));
-    }
-  });
+  setInterval(updateReadings, 1000);
+});
 </script>
 
+<script src="../js/script.js"></script>
 </body>
 </html>
