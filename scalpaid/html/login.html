@@ -1,95 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ScalpAid – Login</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
-  <link rel="stylesheet" href="../css/style.css" />
-</head>
-<body>
-  <header class="top-nav">
-    <div class="logo">ScalpAid</div>
-    <nav class="nav-links">
-      <a href="index.html">Home</a>
-      <a href="login.html" class="active">Login</a>
-      <a href="register.html">Register</a>
-    </nav>
-  </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ScalpAid – Login</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    />
+    <link rel="stylesheet" href="../css/style.css" />
+  </head>
+  <body>
+    <header class="top-nav">
+      <div class="logo" style="display: flex; align-items: center; gap: 10px">
+        <img
+          src="../images/Logo.png"
+          alt="ScalpAid Logo"
+          style="height: 60px; width: auto"
+        />
+        <span style="font-weight: 700; font-size: 1.5rem; color: #5e7554">
+          ScalpAid
+        </span>
+      </div>
+      <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="login.html" class="active">Login</a>
+        <a href="register.html">Register</a>
+      </nav>
+    </header>
 
-  <main style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding-top:60px;">
-    <div class="card" style="max-width:400px; width:100%;">
-      <div class="page-title">Login</div>
-      <p class="page-subtitle">Access your ScalpAid account.</p>
+    <main
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding-top: 60px;
+      "
+    >
+      <div class="card" style="max-width: 400px; width: 100%">
+        <div class="page-title">Login</div>
+        <p class="page-subtitle">Access your ScalpAid account.</p>
 
-      <form id="loginForm">
-        <input type="email" id="email" class="input-field" placeholder="Email" required />
-        <input type="password" id="password" class="input-field" placeholder="Password" required />
-        <button class="btn-primary" type="submit">Log In</button>
-      </form>
-    </div>
-  </main>
+        <form id="loginForm">
+          <input
+            type="email"
+            id="email"
+            class="input-field"
+            placeholder="Email"
+            required
+          />
+          <input
+            type="password"
+            id="password"
+            class="input-field"
+            placeholder="Password"
+            required
+          />
+          <button class="btn-primary" type="submit">Log In</button>
+        </form>
+      </div>
+    </main>
 
- <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("loginForm");
-  if (!form) return;
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("loginForm");
+        if (!form) return;
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const email = document.getElementById("email").value.trim().toLowerCase();
-    const password = document.getElementById("password").value.trim();
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+          const email = document
+            .getElementById("email")
+            .value.trim()
+            .toLowerCase();
+          const password = document.getElementById("password").value.trim();
 
-    if (!email || !password) {
-      alert("Please enter valid credentials.");
-      return;
-    }
+          if (!email || !password) {
+            alert("Please enter valid credentials.");
+            return;
+          }
 
-    // Demo Brianna user (hardcoded demo data)
-    if (email === "brianna@example.com") {
-      const brianna = {
-        email: "brianna@example.com",
-        name: "Briana Shen",
-        username: "@brianashen",
-        goal: localStorage.getItem("userGoal") || "Prevent Alopecia",
-        hairType: "Curly (3B)",
-        hairTexture: "Medium-Thick",
-        memberSince: "10/09/2024",
-        // demo sensor values
-        temperature: 36.5,
-        tension: 4,
-        moisture: 62,
-        // demo history arrays (used by charts)
-        history: {
-          temp: [36.4,36.5,36.6,36.5,36.5,36.4,36.5],
-          tension: [4,4,5,4,4,4,4],
-          moisture: [60,61,62,62,62,63,62]
-        }
-      };
-      localStorage.setItem("loggedInUser", JSON.stringify(brianna));
-      window.location.href = "home.html";
-      return;
-    }
+          // Demo Brianna user (hardcoded demo data)
+          if (email === "brianna@example.com") {
+            const brianna = {
+              email: "brianna@example.com",
+              name: "Briana Shen",
+              username: "@brianashen",
+              goal: localStorage.getItem("userGoal") || "Prevent Alopecia",
+              hairType: "Curly (3B)",
+              hairTexture: "Medium-Thick",
+              memberSince: "10/09/2024",
+              // demo sensor values
+              temperature: 36.5,
+              tension: 4,
+              moisture: 62,
+              // demo history arrays (used by charts)
+              history: {
+                temp: [36.4, 36.5, 36.6, 36.5, 36.5, 36.4, 36.5],
+                tension: [4, 4, 5, 4, 4, 4, 4],
+                moisture: [60, 61, 62, 62, 62, 63, 62],
+              },
+            };
+            localStorage.setItem("loggedInUser", JSON.stringify(brianna));
+            window.location.href = "home.html";
+            return;
+          }
 
-    // Any other user: create empty profile but preserve chosen goal if any
-    const user = {
-      email,
-      name: "",
-      username: "@" + email.split("@")[0],
-      goal: localStorage.getItem("userGoal") || "Prevent Alopecia",
-      hairType: "",
-      hairTexture: "",
-      memberSince: new Date().toLocaleDateString(),
-      temperature: null,
-      tension: null,
-      moisture: null,
-      history: { temp: [], tension: [], moisture: [] }
-    };
-    localStorage.setItem("loggedInUser", JSON.stringify(user));
-    window.location.href = "home.html";
-  });
-});
-</script>
-
-</body>
+          // Any other user: create empty profile but preserve chosen goal if any
+          const user = {
+            email,
+            name: "",
+            username: "@" + email.split("@")[0],
+            goal: localStorage.getItem("userGoal") || "Prevent Alopecia",
+            hairType: "",
+            hairTexture: "",
+            memberSince: new Date().toLocaleDateString(),
+            temperature: null,
+            tension: null,
+            moisture: null,
+            history: { temp: [], tension: [], moisture: [] },
+          };
+          localStorage.setItem("loggedInUser", JSON.stringify(user));
+          window.location.href = "home.html";
+        });
+      });
+    </script>
+  </body>
 </html>
