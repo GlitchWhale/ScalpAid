@@ -33,7 +33,7 @@
         <div class="readings">
           <p><strong>Temperature:</strong> <span id="tempReading">--</span></p>
           <p><strong>Moisture:</strong> <span id="moistureReading">--</span></p>
-          <p><strong>Tension:</strong> <span id="tensionReading">--</span></p>
+          <p><strong>Tension:Future Addition</strong> <span id="tensionReading">--</span></p>
         </div>
       </section>
     </section>
@@ -75,7 +75,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Update readings every second
   setInterval(() => {
-    // Random slight variation
     readings.temperature = (36 + Math.random() * 2).toFixed(1);
     readings.moisture = (50 + Math.random() * 20).toFixed(0);
     readings.tension = (3 + Math.random() * 3).toFixed(1);
@@ -88,17 +87,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const statusEl = document.getElementById("healthStatus");
     let status = "Normal", emoji = "🟢";
     if (readings.temperature > 38 || readings.moisture < 30 || readings.tension > 6) {
-      status = "Warning";
-      emoji = "🟠";
+      status = "Warning"; emoji = "🟠";
     }
-    if (readings.tension > 7) {
-      status = "Critical";
-      emoji = "🔴";
-    }
+    if (readings.tension > 7) { status = "Critical"; emoji = "🔴"; }
     statusEl.textContent = `${emoji} ${status}`;
   }, 1000);
 
-  // Chart configuration helper
   function createChart(ctx, label, color) {
     return new Chart(ctx, {
       type: 'line',
@@ -117,10 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       options: {
         responsive: true,
-        scales: {
-          y: { beginAtZero: false, ticks: { color: "#333" } },
-          x: { ticks: { color: "#333" } }
-        },
+        scales: { y: { beginAtZero: false, ticks: { color: "#333" } }, x: { ticks: { color: "#333" } } },
         plugins: { legend: { display: false } }
       }
     });
@@ -131,10 +122,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const moistureChart = createChart(document.getElementById("moistureChart"), "Moisture (%)", "#36A2EB");
   const tensionChart = createChart(document.getElementById("tensionChart"), "Tension", "#FFCE56");
 
-  // Add new data point every 20 seconds
+  // Independent label counters
+  let tempCounter = 12, moistureCounter = 12, tensionCounter = 12;
+
   setInterval(() => {
-    const addData = (chart, value) => {
-      chart.data.labels.push(`${chart.data.labels.length + 1}h`);
+    const addData = (chart, value, counterRef) => {
+      chart.data.labels.push(`${counterRef.value + 1}h`);
+      counterRef.value++;
       chart.data.datasets[0].data.push(value);
       if (chart.data.datasets[0].data.length > 12) {
         chart.data.labels.shift();
@@ -143,12 +137,18 @@ document.addEventListener("DOMContentLoaded", () => {
       chart.update();
     };
 
-    addData(tempChart, parseFloat(readings.temperature));
-    addData(moistureChart, parseFloat(readings.moisture));
-    addData(tensionChart, parseFloat(readings.tension));
+    addData(tempChart, parseFloat(readings.temperature), {value: tempCounter});
+    tempCounter++;
+
+    addData(moistureChart, parseFloat(readings.moisture), {value: moistureCounter});
+    moistureCounter++;
+
+    addData(tensionChart, parseFloat(readings.tension), {value: tensionCounter});
+    tensionCounter++;
   }, 20000);
 });
 </script>
+
 
 </body>
 </html>
