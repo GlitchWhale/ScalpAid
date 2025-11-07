@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -7,6 +7,42 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
   <link rel="stylesheet" href="../css/style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .alert-btn {
+      background-color: #ff6b6b;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 18px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-top: 10px;
+      transition: 0.3s;
+    }
+    .alert-btn:hover {
+      background-color: #ff4040;
+    }
+    .alert-banner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background-color: #ffce56;
+      color: #000;
+      font-weight: 600;
+      text-align: center;
+      padding: 12px;
+      z-index: 999;
+      transition: transform 0.4s ease-in-out;
+      transform: translateY(-100%);
+    }
+    .alert-banner.show {
+      transform: translateY(0);
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
 </head>
 <body>
 <div class="app-shell">
@@ -29,16 +65,17 @@
 
       <section class="card health-overview">
         <div class="page-title">Scalp Health Overview</div>
+        <p style="font-weight:600; color:#555;">📡 Streaming from Headband...</p>
         <div id="healthStatus" class="health-status normal">🟢 Normal</div>
         <div class="readings">
           <p><strong>Temperature:</strong> <span id="tempReading">--</span></p>
           <p><strong>Moisture:</strong> <span id="moistureReading">--</span></p>
-          <p><strong>Tension:Future Addition</strong> <span id="tensionReading">--</span></p>
+          <p><strong>Tension: Future Addition</strong> <span id="tensionReading">--</span></p>
         </div>
+        <button id="triggerAlertBtn" class="alert-btn">Trigger Alert</button>
       </section>
     </section>
 
-    <!-- Graphs -->
     <section class="card full-span">
       <div class="section-title">Temperature Overview</div>
       <canvas id="tempChart"></canvas>
@@ -64,33 +101,47 @@
   </nav>
 </div>
 
+<!-- ✅ Notification banner -->
+<div id="alertBanner" class="alert-banner hidden">
+  ⚠️ High temperature and low moisture detected! Please check scalp condition.
+</div>
+
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  // Initialize readings
-  let readings = {
-    temperature: 36.5,
-    moisture: 62,
-    tension: 4
-  };
+  let readings = { temperature: 36.5, moisture: 62, tension: 4 };
+  let alertActive = false;
 
-  // Update readings every second
-  setInterval(() => {
-    readings.temperature = (36 + Math.random() * 2).toFixed(1);
-    readings.moisture = (50 + Math.random() * 20).toFixed(0);
-    readings.tension = (3 + Math.random() * 3).toFixed(1);
+  const tempEl = document.getElementById("tempReading");
+  const moistureEl = document.getElementById("moistureReading");
+  const tensionEl = document.getElementById("tensionReading");
+  const statusEl = document.getElementById("healthStatus");
+  const alertBanner = document.getElementById("alertBanner");
+  const triggerAlertBtn = document.getElementById("triggerAlertBtn");
 
-    document.getElementById("tempReading").textContent = `${readings.temperature}°C`;
-    document.getElementById("moistureReading").textContent = `${readings.moisture}%`;
-    document.getElementById("tensionReading").textContent = readings.tension;
+  function updateDisplay() {
+    tempEl.textContent = `${readings.temperature}°C`;
+    moistureEl.textContent = `${readings.moisture}%`;
+    tensionEl.textContent = readings.tension;
 
-    // Status check
-    const statusEl = document.getElementById("healthStatus");
     let status = "Normal", emoji = "🟢";
     if (readings.temperature > 38 || readings.moisture < 30 || readings.tension > 6) {
       status = "Warning"; emoji = "🟠";
     }
-    if (readings.tension > 7) { status = "Critical"; emoji = "🔴"; }
+    if (readings.temperature > 39 || readings.tension > 7) {
+      status = "Critical"; emoji = "🔴";
+    }
     statusEl.textContent = `${emoji} ${status}`;
+    statusEl.className = `health-status ${status.toLowerCase()}`;
+  }
+
+  // Regular updates every second
+  setInterval(() => {
+    if (!alertActive) {
+      readings.temperature = (36 + Math.random() * 2).toFixed(1);
+      readings.moisture = (50 + Math.random() * 20).toFixed(0);
+      readings.tension = (3 + Math.random() * 3).toFixed(1);
+      updateDisplay();
+    }
   }, 1000);
 
   function createChart(ctx, label, color) {
@@ -111,24 +162,20 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       options: {
         responsive: true,
-        scales: { y: { beginAtZero: false, ticks: { color: "#333" } }, x: { ticks: { color: "#333" } } },
+        scales: { y: { beginAtZero: false }, x: {} },
         plugins: { legend: { display: false } }
       }
     });
   }
 
-  // Create the three graphs
   const tempChart = createChart(document.getElementById("tempChart"), "Temperature (°C)", "#FF6384");
   const moistureChart = createChart(document.getElementById("moistureChart"), "Moisture (%)", "#36A2EB");
   const tensionChart = createChart(document.getElementById("tensionChart"), "Tension", "#FFCE56");
 
-  // Independent label counters
-  let tempCounter = 12, moistureCounter = 12, tensionCounter = 12;
-
+  // Add new points every 20 seconds
   setInterval(() => {
-    const addData = (chart, value, counterRef) => {
-      chart.data.labels.push(`${counterRef.value + 1}h`);
-      counterRef.value++;
+    const addData = (chart, value) => {
+      chart.data.labels.push(`${chart.data.labels.length + 1}h`);
       chart.data.datasets[0].data.push(value);
       if (chart.data.datasets[0].data.length > 12) {
         chart.data.labels.shift();
@@ -136,19 +183,34 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       chart.update();
     };
-
-    addData(tempChart, parseFloat(readings.temperature), {value: tempCounter});
-    tempCounter++;
-
-    addData(moistureChart, parseFloat(readings.moisture), {value: moistureCounter});
-    moistureCounter++;
-
-    addData(tensionChart, parseFloat(readings.tension), {value: tensionCounter});
-    tensionCounter++;
+    addData(tempChart, parseFloat(readings.temperature));
+    addData(moistureChart, parseFloat(readings.moisture));
+    addData(tensionChart, parseFloat(readings.tension));
   }, 20000);
+
+  // 🚨 Manual Alert Trigger
+  triggerAlertBtn.addEventListener("click", () => {
+    if (alertActive) return;
+    alertActive = true;
+
+    readings.temperature = (39 + Math.random()).toFixed(1);
+    readings.moisture = (25 + Math.random() * 3).toFixed(0);
+    updateDisplay();
+
+    alertBanner.classList.remove("hidden");
+    setTimeout(() => alertBanner.classList.add("show"), 10);
+
+    // Recover after 10 seconds
+    setTimeout(() => {
+      alertBanner.classList.remove("show");
+      setTimeout(() => alertBanner.classList.add("hidden"), 500);
+      readings.temperature = (36 + Math.random()).toFixed(1);
+      readings.moisture = (55 + Math.random() * 5).toFixed(0);
+      updateDisplay();
+      alertActive = false;
+    }, 10000);
+  });
 });
 </script>
-
-
 </body>
 </html>
