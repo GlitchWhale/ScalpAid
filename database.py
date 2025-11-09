@@ -6,15 +6,16 @@ Base = declarative_base()
 engine = create_engine(SQLALCHEMY_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
-# --- Users Table Model ---
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(100), nullable=True)
     email = Column(String(190), unique=True, nullable=False)
+    hair_type = Column(String(50), nullable=True)
+    purpose = Column(String(255), nullable=True)
     password = Column(String(255), nullable=False)
     created_at = Column(DateTime, server_default=func.now())
 
-# --- Sensor Readings Table Model ---
 class SensorReading(Base):
     __tablename__ = "sensor_readings"
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -25,7 +26,6 @@ class SensorReading(Base):
     temperature_unit = Column(String(16), nullable=False, default="C")
     created_at = Column(DateTime, server_default=func.now())
 
-    # encryption helpers
     def set_moisture(self, value: str):
         self.moisture_cipher = fernet.encrypt(value.encode()).decode()
 

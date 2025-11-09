@@ -1,26 +1,19 @@
 from database import SessionLocal, User, init_db
-from werkzeug.security import generate_password_hash
 
 def main():
+    # Make sure tables exist
     init_db()
+
+    # Open a session
     session = SessionLocal()
 
     try:
-        # Insert a test user
-        new_user = User(
-            email="test@example.com",
-            password_hash=generate_password_hash("secret123")
-        )
-        session.add(new_user)
-        session.commit()
-
-        # Query back
+        # Run a simple query
         users = session.query(User).all()
-        print(" Database connection successful!")
-        for u in users:
-            print(f"User: {u.email}, Created: {u.created_at}")
+        print("Database connection successful!")
+        print(f"Found {len(users)} users in the table.")
     except Exception as e:
-        print(" Database connection failed:", e)
+        print("Database connection failed:", e)
     finally:
         session.close()
 
