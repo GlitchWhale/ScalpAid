@@ -1,0 +1,146 @@
+/* --- Base Styles --- */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #FFFDD0; /* cream background */
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+/* --- Container --- */
+.container {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #ffffff; /* white card background */
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* --- Headings --- */
+h1, h2, h3 {
+    color: #9CAF88; /* sage green */
+    margin-bottom: 1rem;
+}
+
+/* --- Forms --- */
+form label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+form input, form select, form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+form button {
+    margin-top: 20px;
+    padding: 12px;
+    width: 100%;
+    background-color: #9CAF88; /* sage green */
+    color: #fff;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+form button:hover {
+    background-color: #7f9770; /* darker sage green */
+}
+
+/* --- Flash Messages --- */
+.flash {
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.flash.success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.flash.danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* --- Navigation Bar --- */
+nav {
+    background-color: #9CAF88; /* sage green */
+    color: #fff;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+nav .nav-logo {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+}
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+nav ul li a:hover {
+    text-decoration: underline;
+}
+
+/* --- Sidebar / Dashboard Layout --- */
+.dashboard {
+    display: flex;
+    min-height: 80vh;
+    margin-top: 1rem;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 220px;
+    background-color: #f0f6f3;
+    border-right: 1px solid #ccc;
+    padding: 1rem;
+    border-radius: 0 12px 12px 0;
+}
+
+.sidebar a {
+    display: block;
+    padding: 10px;
+    margin-bottom: 5px;
+    color: #333;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: 0.3s;
+}
+
+.sidebar a:hover {
+    background-color: #9CAF88;
+    color: #fff;
+}
+
+/* Main content */
+.main-content {
+    flex: 1;
+    padding: 2rem;
+}

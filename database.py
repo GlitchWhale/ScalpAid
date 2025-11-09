@@ -6,6 +6,7 @@ Base = declarative_base()
 engine = create_engine(SQLALCHEMY_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
+
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -15,6 +16,7 @@ class User(Base):
     purpose = Column(String(255), nullable=True)
     password = Column(String(255), nullable=False)
     created_at = Column(DateTime, server_default=func.now())
+
 
 class SensorReading(Base):
     __tablename__ = "sensor_readings"
@@ -37,6 +39,7 @@ class SensorReading(Base):
 
     def get_temperature(self) -> str:
         return fernet.decrypt(self.temperature_cipher.encode()).decode()
+
 
 def init_db():
     Base.metadata.create_all(bind=engine)
