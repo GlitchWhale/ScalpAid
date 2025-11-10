@@ -46,3 +46,8 @@ API_KEY=my_secure_api_key
 
 NB make sure to run pip install -r requirements.txt  before testing if the database is connected 
 Run python test_db.py  to see if the database is connected
+
+Run [python import secrets
+key = secrets.token_hex(32)
+print(key)] to get your secret key ladies :)
+
