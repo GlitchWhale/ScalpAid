@@ -7,6 +7,7 @@ from config import API_KEY
 from werkzeug.security import generate_password_hash, check_password_hash
 from config import DB_CONFIG, SECRET_KEY
 import mysql.connector
+from pubnub_client import publish_sensor_data
 
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
