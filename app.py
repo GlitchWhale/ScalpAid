@@ -51,3 +51,54 @@ def home():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+
+@app.route("/api/sensors/data", methods=["POST"])
+def receive_sensor_data():
+    """
+    Receive temperature and moisture readings from Raspberry Pi,
+    store them, and publish via PubNub.
+    """
+    token = request.headers.get("X-API-KEY")
+    if token != API_KEY:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Missing JSON body"}), 400
+
+    device_id = data.get("device_id", "unknown")
+    temperature = data.get("temperature")
+    moisture = data.get("moisture")
+
+    if temperature is None or moisture is None:
+        return jsonify({"error": "temperature and moisture required"}), 400
+
+    db = SessionLocal()
+    try:
+        reading = SensorReading(
+            device_id=device_id,
+            moisture_cipher="",
+            temperature_cipher=""
+        )
+        reading.set_moisture(str(moisture))
+        reading.set_temperature(str(temperature))
+        db.add(reading)
+        db.commit()
+        print(f"[DB] Saved reading from {device_id}")
+    except Exception as e:
+        db.rollback()
+        print("[DB ERROR]", e)
+        return jsonify({"error": "Database error"}), 500
+    finally:
+        db.close()
+
+    publish_sensor_data({
+        "device_id": device_id,
+        "temperature": temperature,
+        "moisture": moisture,
+        "timestamp": data.get("timestamp")
+    })
+
+    return jsonify({"status": "success"}), 200
