@@ -1,0 +1,322 @@
+ScalpAid Backend Setup Guide (For All Team Members)
+
+Version 1.0
+Purpose: Help every team member set up the full backend pipeline
+Components: Flask API, MySQL database, PubNub subscriber, Raspberry Pi test publishing
+
+1. Required Software Installation
+you might already have these, I am adding them here just incase.
+
+Install Python (Official, NOT Anaconda)
+
+Download from https://www.python.org/downloads/
+
+During install, check “Add Python to PATH”
+
+Install Visual Studio Code
+
+https://code.visualstudio.com/
+
+Install XAMPP (for MySQL database)
+
+https://www.apachefriends.org/
+
+After installation, open XAMPP Control Panel
+
+Start “Apache”
+
+Start “MySQL”
+
+Press “Admin” beside MySQL to open phpMyAdmin
+
+2. Clone the ScalpAid Repository
+
+Open VS Code.
+Open the integrated terminal:
+
+Terminal > New Terminal
+
+Clone or download the repo:
+
+git clone https://github.com/GlitchWhale/ScalpAid.git
+
+OR download ZIP and extract.
+
+Open in VS Code:
+
+File > Open Folder > Select ScalpAid-Flask folder.
+
+3. Create the Database and Table
+
+Open phpMyAdmin:
+http://localhost/phpmyadmin
+
+Create a database named:
+scalpaid_test
+
+Create table named “readings”
+Click the database > SQL, then run:
+
+CREATE TABLE readings (
+id INT AUTO_INCREMENT PRIMARY KEY,
+device VARCHAR(50),
+temperature FLOAT,
+state VARCHAR(15),
+timestamp BIGINT
+);
+
+4. Create a Python Virtual Environment (venv)
+
+In VS Code terminal:
+
+cd ScalpAid-Flask
+python -m venv venv
+
+Activate it:
+
+Windows:
+venv\Scripts\activate
+
+A prefix like (venv) should appear at the start of the terminal line.
+
+5. Install Project Dependencies
+
+With venv activated:
+
+pip install flask mysql-connector-python pubnub
+
+6. Select the Correct Python Interpreter in VS Code
+
+VS Code often defaults to Anaconda. This causes the server to run incorrectly.
+
+Press:
+CTRL + SHIFT + P
+
+Search:
+Python: Select Interpreter
+
+If your venv appears, select:
+ScalpAid-Flask\venv\Scripts\python.exe
+
+If it does not appear:
+
+CTRL + SHIFT + P
+
+Search: “Preferences: Open User Settings (JSON)”
+
+Add this line:
+
+"python.defaultInterpreterPath": "C:\Users\YOURNAME\ScalpAid\ScalpAid-Flask\venv\Scripts\python.exe"
+
+Save and restart VS Code.
+
+Then open a new terminal:
+
+Terminal > New Terminal
+
+Activate venv:
+
+venv\Scripts\activate
+
+7. Flask API With PubNub Subscriber (app.py)
+
+Ensure your app.py contains the following code:
+
+from flask import Flask, jsonify
+import mysql.connector
+import time
+import threading
+
+from pubnub.pubnub import PubNub
+from pubnub.pnconfiguration import PNConfiguration
+from pubnub.callbacks import SubscribeCallback
+
+app = Flask(name)
+
+DB_CONFIG = {
+"host": "localhost",
+"user": "root",
+"password": "",
+"database": "scalpaid_test"
+}
+
+def get_db_connection():
+return mysql.connector.connect(**DB_CONFIG)
+
+pnconfig = PNConfiguration()
+pnconfig.subscribe_key = "YOUR_SUBSCRIBE_KEY"
+pnconfig.uuid = "flask-server"
+pubnub = PubNub(pnconfig)
+
+class ScalpListener(SubscribeCallback):
+def message(self, pubnub, event):
+data = event.message
+print("Received from PubNub:", data)
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "INSERT INTO readings (device, temperature, state, timestamp) VALUES (%s, %s, %s, %s)",
+        (data.get("device"), data.get("temperature"), data.get("state"), data.get("timestamp"))
+    )
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+
+def start_pubnub():
+pubnub.add_listener(ScalpListener())
+pubnub.subscribe().channels("scalp_data").execute()
+
+threading.Thread(target=start_pubnub, daemon=True).start()
+
+@app.route("/")
+def index():
+return "<h1>ScalpAid API</h1><p>Go to /readings to view stored data.</p>"
+
+@app.route("/readings")
+def get_readings():
+conn = get_db_connection()
+cursor = conn.cursor(dictionary=True)
+cursor.execute("SELECT * FROM readings ORDER BY id DESC LIMIT 20")
+rows = cursor.fetchall()
+cursor.close()
+conn.close()
+return jsonify(rows)
+
+if name == "main":
+app.run(host="0.0.0.0", port=5000, debug=True)
+
+Replace YOUR_SUBSCRIBE_KEY with the team’s PubNub subscribe key.
+
+8. Run the Flask Server
+
+In VS Code terminal:
+
+venv\Scripts\activate
+python app.py
+
+If successful, you will see:
+
+Running on http://127.0.0.1:5000
+
+Test in a browser:
+
+http://127.0.0.1:5000
+
+http://127.0.0.1:5000/readings
+
+9. Allow Python Through Windows Firewall
+
+If your browser cannot load the page:
+
+Open Start > Windows Defender Firewall
+
+Click “Allow an app through firewall”
+
+Find and enable:
+python.exe
+python3.exe
+pythonw.exe
+
+Enable both Private and Public
+
+Save
+
+Restart Flask and test again.
+
+10. Raspberry Pi Testing (No Sensors Required)
+
+Even without sensors, teammates can test that:
+
+• PubNub is working
+• Flask is receiving
+• Database is storing readings
+
+On the Raspberry Pi:
+
+Step 1: Install PubNub
+
+pip install pubnub
+
+Step 2: Create test publisher file: test_publish.py
+
+from pubnub.pubnub import PubNub
+from pubnub.pnconfiguration import PNConfiguration
+import time
+
+cfg = PNConfiguration()
+cfg.publish_key = "YOUR_PUBLISH_KEY"
+cfg.subscribe_key = "YOUR_SUBSCRIBE_KEY"
+cfg.uuid = "pi-test"
+
+pub = PubNub(cfg)
+
+while True:
+message = {
+"device": "pi_test",
+"temperature": 25.5,
+"state": "normal",
+"timestamp": int(time.time())
+}
+pub.publish().channel("scalp_data").message(message).sync()
+print("sent:", message)
+time.sleep(2)
+
+Step 3: Run the script
+
+python3 test_publish.py
+
+Expected results:
+
+• Pi terminal: prints "sent" messages
+• Flask terminal: prints "Received from PubNub"
+• Database: new rows appear in “readings” table
+• Browser: http://127.0.0.1:5000/readings
+ shows JSON list of readings
+
+This confirms the full pipeline works even without sensors.
+
+11. Troubleshooting Guide
+
+If Flask won’t start:
+
+Wrong Python interpreter (must be venv)
+
+Missing dependencies
+
+MySQL incorrectly configured
+
+If PubNub messages do not appear:
+
+Wrong subscribe key
+
+Wrong channel name
+
+No internet
+
+If MySQL inserts fail:
+
+MySQL is not started in XAMPP
+
+Database or table does not exist
+
+Wrong database name
+
+If browser cannot load 127.0.0.1:5000:
+
+Firewall blocking
+
+Flask not running
+
+Wrong interpreter
+
+If Pi cannot publish:
+
+Wrong publish key
+
+Hotspot has no data
+
+pubnub not installed
