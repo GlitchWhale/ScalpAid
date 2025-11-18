@@ -1,6 +1,12 @@
 from flask import Flask, jsonify
 import mysql.connector
 import time
+import threading
+
+#pubnub imports
+from pubnub.pubnub import PubNub
+from pubnub.pnconfiguration import PNConfiguration
+from pubnub.callbacks import SubscribeCallback
 
 app = Flask(__name__)
 
@@ -15,53 +21,65 @@ DB_CONFIG = {
 def get_db_connection():
     return mysql.connector.connect(**DB_CONFIG)
 
-@app.route("/add_test")
-def add_test():
-    print("Running /add_test route")
-    
-    conn = get_db_connection()
-    cursor = conn.cursor()
+#pubnub config
+pnconfig = PNConfiguration()
+pnconfig.subscribe_key = "sub-c-965e4329-6565-4fba-bb02-05774be3a3c3" 
+pnconfig.uuid = "flask-server"
+pubnub = PubNub(pnconfig)
 
-    device = "test_pi"
-    temp = 29.75
-    state = "warn"
-    ts = int(time.time())
+class ScalpListener(SubscribeCallback):
+    def message(self, pubnub, event):
+        data = event.message
+        
+        # Expected message format:
+        # { "device": "pi1", "temperature": 30.0, "state": "warn", "timestamp": 12345678 }
 
-    cursor.execute(
-        """
-        INSERT INTO readings (device, temperature, state, timestamp)
-        VALUES (%s, %s, %s, %s)
-        """,
-        (device, temp, state, ts)
+        print("Received from PubNub:", data)
+
+        # Save to database
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            INSERT INTO readings (device, temperature, state, timestamp)
+            VALUES (%s, %s, %s, %s)
+            """,
+            (data.get("device"), data.get("temperature"), data.get("state"), data.get("timestamp"))
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        
+# Attach listener & subscribe
+def start_pubnub():
+    pubnub.add_listener(ScalpListener())
+    pubnub.subscribe().channels("scalp_data").execute()
+
+# Run PubNub listener in background thread
+threading.Thread(target=start_pubnub, daemon=True).start()
+
+@app.route("/")
+def index():
+    return (
+        "<h1>ScalpAid API</h1>"
+        "<p>PubNub listener running in background.<br>"
+        "Visit <a href='/readings'>/readings</a> to view stored sensor data.</p>"
     )
-    conn.commit()
-    cursor.close()
-    conn.close()
-
-    return "Inserted test row into readings table!"
 
 @app.route("/readings")
 def get_readings():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    cursor.execute(
-        "SELECT * FROM readings ORDER BY id DESC LIMIT 20"
-    )
+    cursor.execute("SELECT * FROM readings ORDER BY id DESC LIMIT 20")
     rows = cursor.fetchall()
 
     cursor.close()
     conn.close()
-
     return jsonify(rows)
-
-@app.route("/")
-def index():
-    return (
-        "<h1>ScalpAid Test API</h1>"
-        "<p>Go to <a href='/add_test'>/add_test</a> to insert a test row.<br>"
-        "Then check <a href='/readings'>/readings</a> to see data.</p>"
-    )
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
