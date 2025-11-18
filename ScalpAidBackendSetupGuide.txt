@@ -320,3 +320,97 @@ Wrong publish key
 Hotspot has no data
 
 pubnub not installed
+
+Troubleshooting: Anaconda Interfering With Python / Virtual Environments
+
+This section explains a known issue where VS Code or Windows launches the wrong version of Python, causing the project to fail. Only some machines experience this, especially if Anaconda was previously installed.
+
+Symptoms
+
+If Anaconda has taken control of the Python launcher, you may see:
+
+Python 3.x.x | packaged by Anaconda, Inc.
+
+
+even when:
+
+You are NOT using Anaconda
+
+You selected the correct interpreter in VS Code
+
+You activated the venv
+
+“python --version” outside the venv shows the correct version
+
+In this situation, everything outside the venv appears normal, but inside the venv Anaconda still appears.
+
+This happens because the venv was originally created using Anaconda’s Python, even though Anaconda is not installed anymore.
+
+How to Confirm the Issue
+
+Open VS Code.
+
+Open a new terminal.
+
+Activate the venv:
+
+venv\Scripts\activate
+
+
+Run:
+
+python
+
+
+If it shows “packaged by Anaconda”, the virtual environment was created using the wrong interpreter.
+
+Fix: Rebuild the Virtual Environment
+
+This fully resolves the issue.
+
+1. Delete the old venv
+deactivate
+rmdir /s /q venv
+
+
+(or delete the venv folder manually)
+
+2. Confirm the system Python is correct
+
+Run this outside the venv:
+
+python --version
+
+
+It should NOT say Anaconda.
+
+3. Recreate the venv using the correct Python
+python -m venv venv
+
+4. Activate the new venv
+venv\Scripts\activate
+
+5. Install project dependencies
+pip install flask mysql-connector-python pubnub
+
+6. Run the Flask app
+python app.py
+
+
+If Python no longer says “packaged by Anaconda”, the issue is fixed.
+
+Preventing This Issue on Other Team Members’ Machines
+
+Do not install Anaconda unless absolutely necessary.
+
+Always create the venv after verifying Python version is correct:
+
+python --version
+
+
+Inside VS Code, always choose the interpreter located at:
+
+project_folder\venv\Scripts\python.exe
+
+
+If VS Code ever shows Anaconda Python unexpectedly, delete the venv and recreate it following the steps above.
