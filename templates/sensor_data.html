@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h2 class="page-title">Live Sensor Data</h2>
+
+<div id="sensor-wrapper">
+
+    <div class="sensor-card">
+        <h3>Device</h3>
+        <p id="device">--</p>
+    </div>
+
+    <div class="sensor-card">
+        <h3>Temperature (°C)</h3>
+        <p id="temp">--</p>
+    </div>
+
+    <div class="sensor-card">
+        <h3>Moisture (%)</h3>
+        <p id="moist">--</p>
+    </div>
+
+    <div class="sensor-card">
+        <h3>Timestamp</h3>
+        <p id="time">--</p>
+    </div>
+
+</div>
+
+<script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.0.min.js"></script>
+<script src="{{ url_for('static', filename='js/sensor.js') }}"></script>
+
+{% endblock %}
