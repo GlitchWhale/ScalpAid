@@ -12,7 +12,10 @@
     <ul>
         <li><a href="{{ url_for('home') }}">Home</a></li>
         <li><a href="{{ url_for('register') }}">Register</a></li>
-        <li><a href="#">Dashboard</a></li>
+        <li><a href="{{ url_for('login') }}">Login</a></li>
+        <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+        <li><a href="{{ url_for('profile') }}">Profile</a></li>
+
         <li><a href="#">Settings</a></li>
     </ul>
 </nav>
@@ -21,7 +24,8 @@
     <div class="sidebar">
         <a href="#">Overview</a>
         <a href="#">Users</a>
-        <a href="#">Sensor Data</a>
+        <li><a href="{{ url_for('sensor_data') }}">Sensor Data</a></li>
+
         <a href="#">Reports</a>
         <a href="#">Settings</a>
     </div>
@@ -32,5 +36,37 @@
     <p>Our Flask setup is working ladies :) </p>
      <a href="{{ url_for('register') }}">Go to Registration</a>
     </div>
+    <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.1.min.js"></script>
+
+<script>
+    const pubnub = new PubNub({
+        publishKey: "pub-c-72867b34-4207-47de-a982-c35d4dbf14a8",      // replace with your real key
+        subscribeKey: "sub-c-965e4329-6565-4fba-bb02-05774be3a3c3"     // replace with your real key
+    });
+
+    pubnub.subscribe({ channels: ['scalp_data'] });
+    pubnub.addListener({
+        message: function(event) {
+            console.log("Real-time sensor data:", event.message);
+
+            // Update DOM fields if present
+            if (document.getElementById("temp-value")) {
+                document.getElementById("temp-value").textContent = event.message.temperature;
+            }
+            if (document.getElementById("moisture-value")) {
+                document.getElementById("moisture-value").textContent = event.message.moisture;
+            }
+
+            // Update chart if it exists
+            if (window.sensorChart) {
+                sensorChart.data.labels.push(event.message.timestamp);
+                sensorChart.data.datasets[0].data.push(event.message.temperature);
+                sensorChart.data.datasets[1].data.push(event.message.moisture);
+                sensorChart.update();
+            }
+        }
+    });
+</script>
+
 </body>
 </html>

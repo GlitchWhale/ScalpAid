@@ -12,8 +12,11 @@ pnconfig = PNConfiguration()
 pnconfig.publish_key = PUBNUB_PUBLISH_KEY
 pnconfig.subscribe_key = PUBNUB_SUBSCRIBE_KEY
 pnconfig.ssl = True
+pnconfig.uuid = "flask-server"
+
 
 pubnub = PubNub(pnconfig)
+
 
 def publish_sensor_data(message):
     """Publish a message to the ScalpAid PubNub channel."""
