@@ -31,27 +31,30 @@ class ScalpListener(SubscribeCallback):
     def message(self, pubnub, event):
         data = event.message
         
-        # Expected message format:
-        # { "device": "pi1", "temperature": 30.0, "state": "warn", "timestamp": 12345678 }
-
         print("Received from PubNub:", data)
 
-        # Save to database
+        device = data.get("device")
+        temperature = data.get("temperature")
+        state = data.get("state")
+        moisture_raw = data.get("moisture_raw")
+        moisture_voltage = data.get("moisture_voltage")
+        ts = data.get("timestamp")
+
+        # Insert into database
         conn = get_db_connection()
         cursor = conn.cursor()
 
         cursor.execute(
             """
-            INSERT INTO readings (device, temperature, state, timestamp)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO readings (device, temperature, state, moisture_raw, moisture_voltage, timestamp)
+            VALUES (%s, %s, %s, %s, %s, %s)
             """,
-            (data.get("device"), data.get("temperature"), data.get("state"), data.get("timestamp"))
+            (device, temperature, state, moisture_raw, moisture_voltage, ts)
         )
 
         conn.commit()
         cursor.close()
         conn.close()
-        
         
 # Attach listener & subscribe
 def start_pubnub():
