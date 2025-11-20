@@ -82,61 +82,55 @@ def sensor_data():
 # -------------------------------------------------------
 @app.route("/api/sensors/data", methods=["POST"])
 def receive_sensor_data():
-    """
-    Receive temperature and moisture readings from Raspberry Pi,
-    store them, and publish via PubNub.
-    """
-
-    # Check API key
     token = request.headers.get("X-API-KEY")
     if token != API_KEY:
         return jsonify({"error": "Unauthorized"}), 401
 
-    # Validate JSON
     data = request.get_json()
     if not data:
-        return jsonify({"error": "Missing JSON body"}), 400
+        return jsonify({"error": "Missing JSON"}), 400
 
-    device_id = data.get("device_id", "unknown")
+    device = data.get("device_id", "unknown")
     temperature = data.get("temperature")
     moisture = data.get("moisture")
+    timestamp = data.get("timestamp", int(time.time()))
 
     if temperature is None or moisture is None:
         return jsonify({"error": "temperature and moisture required"}), 400
 
-    # Save to database
     db = SessionLocal()
     try:
-        reading = SensorReading(
-            device_id=device_id,
-            moisture_cipher="",
-            temperature_cipher=""
+        # temperature row
+        temp_row = SensorReading(
+            device=device,
+            sensor_type="temperature",
+            value=float(temperature),
+            state=data.get("state", "normal"),
+            timestamp=timestamp
         )
+        db.add(temp_row)
 
-        reading.set_moisture(str(moisture))
-        reading.set_temperature(str(temperature))
+        # moisture row
+        moisture_row = SensorReading(
+            device=device,
+            sensor_type="moisture",
+            value=float(moisture),
+            state="normal",
+            timestamp=timestamp
+        )
+        db.add(moisture_row)
 
-        db.add(reading)
         db.commit()
-        print(f"[DB] Saved reading from {device_id}")
 
     except Exception as e:
         db.rollback()
-        print("[DB ERROR]", e)
-        return jsonify({"error": "Database error"}), 500
+        print("DB ERROR:", e)
+        return jsonify({"error": "Database failure"}), 500
 
     finally:
         db.close()
 
-    # Publish to PubNub (for live dashboard updates)
-    publish_sensor_data({
-        "device_id": device_id,
-        "temperature": temperature,
-        "moisture": moisture,
-        "timestamp": data.get("timestamp")
-    })
-
-    return jsonify({"status": "success"}), 200
+    return jsonify({"status": "ok"}), 200
 
 
 # -------------------------------------------------------

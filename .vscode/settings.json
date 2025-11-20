@@ -1,0 +1,48 @@
+{
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "scalpaid-db.cxqcau4kqw5v.eu-north-1.rds.amazonaws.com",
+            "port": 3306,
+            "driver": "MySQL",
+            "name": "ScalpAid-RDS",
+            "username": "admin",
+            "database": "scalpaid"
+        },
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "scalpaid-db.cxqcau4kqw5v.eu-north-1.rds.amazonaws.com",
+            "port": 3306,
+            "driver": "MySQL",
+            "name": "ScalpAid_RDS",
+            "database": "scalpaid",
+            "username": "admin",
+            "password": "ScalpAid2025!"
+        },
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "scalpaid-db.cxqcau4kqw5v.eu-north-1.rds.amazonaws.com",
+            "port": 3306,
+            "driver": "MySQL",
+            "name": "SCalpAid_rds",
+            "database": "scalpaid",
+            "username": "admin",
+            "password": "ScalpAid2025!"
+        }
+    ]
+}

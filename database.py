@@ -1,45 +1,29 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, func
+from sqlalchemy import create_engine, Column, Integer, String, Float, BigInteger, DateTime, func
 from sqlalchemy.orm import declarative_base, sessionmaker
-from config import SQLALCHEMY_URL, fernet
+from config import SQLALCHEMY_URL
 
 Base = declarative_base()
 engine = create_engine(SQLALCHEMY_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
-
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(100), nullable=True)
+    name = Column(String(100))
     email = Column(String(190), unique=True, nullable=False)
-    hair_type = Column(String(50), nullable=True)
-    purpose = Column(String(255), nullable=True)
+    hair_type = Column(String(50))
+    purpose = Column(String(255))
     password = Column(String(255), nullable=False)
     created_at = Column(DateTime, server_default=func.now())
-
 
 class SensorReading(Base):
     __tablename__ = "sensor_readings"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    device_id = Column(String(64), nullable=False)
-    moisture_cipher = Column(String(512), nullable=False)
-    temperature_cipher = Column(String(512), nullable=False)
-    moisture_unit = Column(String(16), nullable=False, default="%")
-    temperature_unit = Column(String(16), nullable=False, default="C")
-    created_at = Column(DateTime, server_default=func.now())
-
-    def set_moisture(self, value: str):
-        self.moisture_cipher = fernet.encrypt(value.encode()).decode()
-
-    def get_moisture(self) -> str:
-        return fernet.decrypt(self.moisture_cipher.encode()).decode()
-
-    def set_temperature(self, value: str):
-        self.temperature_cipher = fernet.encrypt(value.encode()).decode()
-
-    def get_temperature(self) -> str:
-        return fernet.decrypt(self.temperature_cipher.encode()).decode()
-
+    device = Column(String(50), nullable=False)
+    sensor_type = Column(String(20), nullable=False)
+    value = Column(Float, nullable=False)
+    state = Column(String(20))
+    timestamp = Column(BigInteger, nullable=False)
 
 def init_db():
     Base.metadata.create_all(bind=engine)
