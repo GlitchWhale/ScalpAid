@@ -33,6 +33,7 @@ class ScalpListener(SubscribeCallback):
         
         print("Received from PubNub:", data)
 
+#pull data
         device = data.get("device")
         temperature = data.get("temperature")
         state = data.get("state")
