@@ -3,6 +3,11 @@ import time
 import RPi.GPIO as GPIO
 from pubnub.pubnub import PubNub
 from pubnub.pnconfiguration import PNConfiguration
+import board
+import busio
+from adafruit_ads1x15.ads1115 import ADS1115
+from adafruit_ads1x15.analog_in import AnalogIn
+
 
 #GPIO pins
 LED_PIN = 27
@@ -34,6 +39,15 @@ def read_temp_c():
         return temp_c
     return None
 
+i2c = busio.I2C(board.SCL, board.SDA)
+ads = ADS1115(i2c)
+moisture_channel = AnalogIn(ads,0)
+
+def read_moisture():
+    """return tuple: (raw_value, voltage)"""
+    return moisture_channel.value, moisture_channel.voltage
+
+
 #pubnub setup
 pnconfig = PNConfiguration()
 pnconfig.publish_key = "pub-c-72867b34-4207-47de-a982-c35d4dbf14a8"
@@ -43,15 +57,17 @@ pnconfig.uuid = "raspberrypi-1"
 pubnub = PubNub(pnconfig)
 CHANNEL = "scalp_data"
 
-def publish(temp, state):
+def publish(temp, state, moisture_raw, moisture_voltage):
     message={
         "device":"pi1",
         "temperature":temp,
         "state": state,
+        "moisture_raw": moisture_raw,
+        "moisture_voltage": moisture_voltage,
         "timestamp": int(time.time())
     }
     try:
-        pubnub.publish().channel(CHANNEL).message(message).sync()
+        pubnub.publish().channel(CHANNEL).message(message).pn_async(lambda e, s: None)
         print("sent to pubnub:", message)
     except Exception as e:
         print("pubnub error:",e)
@@ -74,7 +90,8 @@ try:
             time.sleep(0.5)
             continue
 
-        print(f"temperature: {t:.2f} C | state={state}")
+        moisture_raw, moisture_voltage= read_moisture()
+        print(f"temperature: {t:.2f} C | Moisture V: {moisture_voltage:.3f} | state={state}")
 
 #state logic
         if state == "normal":
@@ -86,7 +103,6 @@ try:
         elif state == "warn":
             if t >= ALARM_ON:
                 state="alarm"
-
             elif t <= WARN_OFF:
                 state="normal"
 
@@ -107,7 +123,7 @@ try:
             GPIO.output(BUZZER_PIN, GPIO.LOW)
 
 #publish to pubnub
-        publish(t,state)
+        publish(t,state,moisture_raw,moisture_voltage)
         time.sleep(0.3)
 
 except KeyboardInterrupt:
@@ -116,4 +132,6 @@ finally:
     GPIO.output(LED_PIN, GPIO.LOW)
     GPIO.output(BUZZER_PIN, GPIO.LOW)
     GPIO.cleanup()
+
+
 
