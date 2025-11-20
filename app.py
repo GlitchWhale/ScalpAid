@@ -199,6 +199,14 @@ def profile():
     return render_template('profile.html', user=user)
 
 
+@app.route('/insights')
+def insights():
+    if 'user_id' not in session:
+        flash("Please log in first.", "warning")
+        return redirect(url_for('login'))
+
+    return render_template('insights.html')
+
 # -------------------------------------------------------
 # Run Server
 # -------------------------------------------------------
