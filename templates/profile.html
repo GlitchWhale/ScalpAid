@@ -1,26 +1,96 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<div class="container">
-    <h2>My Profile</h2>
+<div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-md p-8 space-y-6">
+    <h2 class="text-3xl font-bold text-sage-dark">My Profile</h2>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <p class="flash {{ category }}">{{ message }}</p>
+          <p class="p-3 rounded bg-red-100 text-red-800">{{ message }}</p>
         {% endfor %}
       {% endif %}
     {% endwith %}
 
-    <div class="profile-card">
-        <p><strong>Name:</strong> {{ user.name }}</p>
-        <p><strong>Email:</strong> {{ user.email }}</p>
-        <p><strong>Hair Type:</strong> {{ user.hair_type }}</p>
-        <p><strong>Purpose:</strong> {{ user.purpose }}</p>
-        <p><strong>Joined:</strong> {{ user.created_at.strftime('%Y-%m-%d') }}</p>
+    <!-- Profile Overview Card -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Basic Info -->
+        <div class="p-5 border border-beige rounded-xl bg-cream">
+            <h3 class="font-semibold text-lg mb-2 text-sage-dark">Basic Information</h3>
+            <p><strong>Name:</strong> {{ user.name }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>Joined:</strong> {{ user.created_at.strftime('%Y-%m-%d') }}</p>
+        </div>
+
+        <!-- Hair & Purpose Info -->
+        <div class="p-5 border border-beige rounded-xl bg-cream">
+            <h3 class="font-semibold text-lg mb-2 text-sage-dark">Profile Details</h3>
+            <p><strong>Hair Type:</strong> {{ user.hair_type or 'Not set' }}</p>
+            <p><strong>Purpose:</strong> {{ user.purpose or 'Not set' }}</p>
+        </div>
     </div>
 
-    <a href="{{ url_for('logout') }}" class="btn">Log Out</a>
-</div>
+    <!-- Editable Form -->
+    <div class="p-6 bg-sage-light/20 rounded-xl mt-4 transition duration-300 ease-in-out hover:shadow-lg">
+        <h3 class="text-xl font-semibold text-sage-dark mb-4">Edit Profile</h3>
+
+        <form action="{{ url_for('profile') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+
+            <!-- Profile Picture -->
+            <div>
+                <label class="block font-medium text-sage-dark">Profile Picture</label>
+                <input type="file" name="profile_pic" accept="image/*" class="w-full p-2 rounded border border-beige">
+            </div>
+
+            <div>
+                <label class="block font-medium text-sage-dark">Name</label>
+                <input type="text" name="name" value="{{ user.name }}" class="w-full p-2 rounded border border-beige" required>
+            </div>
+
+            <div>
+                <label class="block font-medium text-sage-dark">Email</label>
+                <input type="email" name="email" value="{{ user.email }}" class="w-full p-2 rounded border border-beige" required>
+            </div>
+
+            <!-- Dropdowns -->
+            <div>
+                <label class="block font-medium text-sage-dark">Hair Type</label>
+                <select name="hair_type" class="w-full p-2 rounded border border-beige">
+                    <option value="" disabled>Select your hair type</option>
+                    <option value="Straight" {% if user.hair_type == 'Straight' %}selected{% endif %}>Straight</option>
+                    <option value="Wavy" {% if user.hair_type == 'Wavy' %}selected{% endif %}>Wavy</option>
+                    <option value="Curly" {% if user.hair_type == 'Curly' %}selected{% endif %}>Curly</option>
+                    <option value="Coily" {% if user.hair_type == 'Coily' %}selected{% endif %}>Coily</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block font-medium text-sage-dark">Purpose</label>
+                <select name="purpose" class="w-full p-2 rounded border border-beige">
+                    <option value="" disabled>Select your purpose</option>
+                    <option value="Scalp Care" {% if user.purpose == 'Scalp Care' %}selected{% endif %}>Scalp Care</option>
+                    <option value="Hydration Tracking" {% if user.purpose == 'Hydration Tracking' %}selected{% endif %}>Hydration Tracking</option>
+                    <option value="Hair Growth Monitoring" {% if user.purpose == 'Hair Growth Monitoring' %}selected{% endif %}>Hair Growth Monitoring</option>
+                    <option value="General Hair Health" {% if user.purpose == 'General Hair Health' %}selected{% endif %}>General Hair Health</option>
+                </select>
+            </div>
+
+            <!-- Password Change Section -->
+            <div class="mt-6 p-4 rounded-lg bg-white border border-beige transition duration-300 hover:shadow">
+                <h4 class="font-semibold text-sage-dark mb-2">Change Password</h4>
+                <label class="block font-medium text-sage-dark">Current Password</label>
+                <input type="password" name="current_password" class="w-full p-2 rounded border border-beige">
+
+                <label class="block mt-2 font-medium text-sage-dark">New Password</label>
+                <input type="password" name="new_password" class="w-full p-2 rounded border border-beige">
+
+                <label class="block mt-2 font-medium text-sage-dark">Confirm New Password</label>
+                <input type="password" name="confirm_password" class="w-full p-2 rounded border border-beige">
+            </div>
+
+            <button class="bg-sage text-white px-4 py-2 rounded-lg hover:bg-sage-dark transition">Save Changes</button>
+        </form>
+    </div>
 
 {% endblock %}

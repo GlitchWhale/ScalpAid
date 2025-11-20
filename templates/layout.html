@@ -1,72 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ScalpAid</title>
-    <link rel ="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-<nav>
-    <div class="nav-logo">ScalpAid</div>
-    <ul>
-        <li><a href="{{ url_for('home') }}">Home</a></li>
-        <li><a href="{{ url_for('register') }}">Register</a></li>
-        <li><a href="{{ url_for('login') }}">Login</a></li>
-        <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-        <li><a href="{{ url_for('profile') }}">Profile</a></li>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}ScalpAid{% endblock %}</title>
 
-        <li><a href="#">Settings</a></li>
-    </ul>
-</nav>
-
-<div class="dashboard">
-    <div class="sidebar">
-        <a href="#">Overview</a>
-        <a href="#">Users</a>
-        <li><a href="{{ url_for('sensor_data') }}">Sensor Data</a></li>
-
-        <a href="#">Reports</a>
-        <a href="#">Settings</a>
-    </div>
-    <div class="main-content">
-        {% block content %}
-        {% endblock %}
-    <h1>Welcome to ScalpAid</h1>
-    <p>Our Flask setup is working ladies :) </p>
-     <a href="{{ url_for('register') }}">Go to Registration</a>
-    </div>
-    <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.1.min.js"></script>
-
-<script>
-    const pubnub = new PubNub({
-        publishKey: "pub-c-72867b34-4207-47de-a982-c35d4dbf14a8",      // replace with your real key
-        subscribeKey: "sub-c-965e4329-6565-4fba-bb02-05774be3a3c3"     // replace with your real key
-    });
-
-    pubnub.subscribe({ channels: ['scalp_data'] });
-    pubnub.addListener({
-        message: function(event) {
-            console.log("Real-time sensor data:", event.message);
-
-            // Update DOM fields if present
-            if (document.getElementById("temp-value")) {
-                document.getElementById("temp-value").textContent = event.message.temperature;
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              cream: '#FFFDD0',
+              sage: {
+                light: '#9CAF88',
+                DEFAULT: '#8FA97A',
+                dark: '#7f9770'
+              },
+              beige: '#F5F5DC'
             }
-            if (document.getElementById("moisture-value")) {
-                document.getElementById("moisture-value").textContent = event.message.moisture;
-            }
-
-            // Update chart if it exists
-            if (window.sensorChart) {
-                sensorChart.data.labels.push(event.message.timestamp);
-                sensorChart.data.datasets[0].data.push(event.message.temperature);
-                sensorChart.data.datasets[1].data.push(event.message.moisture);
-                sensorChart.update();
-            }
+          }
         }
-    });
-</script>
+      }
+    </script>
+</head>
+<body class="bg-cream min-h-screen flex flex-col">
+
+    <!-- Top Nav -->
+    <nav class="bg-sage text-white px-6 py-4 flex justify-between items-center shadow-md">
+        <div class="font-bold text-2xl">ScalpAid</div>
+        <ul class="hidden md:flex gap-6 font-medium">
+            <li><a href="{{ url_for('home') }}" class="hover:underline">Home</a></li>
+            <li><a href="{{ url_for('register') }}" class="hover:underline">Register</a></li>
+            <li><a href="{{ url_for('login') }}" class="hover:underline">Login</a></li>
+            <li><a href="{{ url_for('dashboard') }}" class="hover:underline">Dashboard</a></li>
+            <li><a href="{{ url_for('profile') }}" class="hover:underline">Profile</a></li>
+        </ul>
+        <button class="md:hidden p-2 bg-sage-dark rounded-lg">Menu</button>
+    </nav>
+
+    <!-- Dashboard Shell -->
+    <div class="flex flex-1 flex-col md:flex-row">
+
+        <!-- Sidebar -->
+        <aside class="w-full md:w-64 bg-sage-light/10 border-r border-beige p-4 space-y-2">
+            <a href="{{ url_for('dashboard') }}" class="block p-2 rounded hover:bg-sage-light text-sage-dark font-medium">Overview</a>
+            <a href="{{ url_for('sensor_data') }}" class="block p-2 rounded hover:bg-sage-light text-sage-dark font-medium">Sensor Data</a>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 space-y-6">
+            {% block content %}
+            {% endblock %}
+        </main>
+    </div>
 
 </body>
 </html>
