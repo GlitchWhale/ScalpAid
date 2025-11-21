@@ -1,0 +1,19 @@
+{
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "scalpaid-db.cxqcau4kqw5v.eu-north-1.rds.amazonaws.com",
+            "port": 3306,
+            "driver": "MySQL",
+            "name": "ScalpAid_RDS",
+            "password": "ScalpAid2025!",
+            "database": "scalpaid",
+            "username": "admin"
+        }
+    ]
+}
