@@ -207,6 +207,27 @@ def insights():
 
     return render_template('insights.html')
 
+@app.route('/history')
+def history():
+    if 'user_id' not in session:
+        flash("Please log in first.", "warning")
+        return redirect(url_for('login'))
+
+    db = SessionLocal()
+    readings = db.query(SensorReading).order_by(SensorReading.created_at.desc()).limit(100).all()
+    db.close()
+
+    # Decrypt readings for display
+    decrypted_readings = []
+    for r in readings:
+        decrypted_readings.append({
+            "device_id": r.device_id,
+            "moisture": r.get_moisture(),
+            "temperature": r.get_temperature(),
+            "created_at": r.created_at
+        })
+
+    return render_template('history.html', readings=decrypted_readings)
 # -------------------------------------------------------
 # Run Server
 # -------------------------------------------------------
