@@ -100,6 +100,7 @@ def dashboard():
 
     return render_template('dashboard.html', username=session['user_name'])
 
+
 @app.route('/logout')
 def logout():
     session.clear()
@@ -112,7 +113,7 @@ def logout():
 # -------------------------------------------------------
 @app.route('/')
 def home():
-    return render_template('layout.html')
+    return render_template('home.html')
 
 
 # -------------------------------------------------------
@@ -207,6 +208,7 @@ def insights():
 
     return render_template('insights.html')
 
+
 @app.route('/history')
 def history():
     if 'user_id' not in session:
@@ -231,5 +233,7 @@ def history():
 # -------------------------------------------------------
 # Run Server
 # -------------------------------------------------------
+
+
 if __name__ == '__main__':
     app.run(debug=True)

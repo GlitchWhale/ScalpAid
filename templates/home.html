@@ -1,0 +1,64 @@
+{% extends "layout.html" %}
+
+{% block title %}Home | ScalpAid{% endblock %}
+
+{% block content %}
+<section class="relative bg-cream overflow-hidden">
+  <div class="max-w-7xl mx-auto px-6 py-20 flex flex-col md:flex-row items-center justify-between">
+    <!-- Text -->
+    <div class="md:w-1/2 space-y-6 z-10">
+      <h1 class="text-5xl font-bold text-sage-dark leading-tight">Healthy Hair Starts Here</h1>
+      <p class="text-lg text-sage-dark/80">Track your scalp health, monitor moisture and temperature, and get personalized insights to keep your hair at its best.</p>
+
+      {% if session.user_id %}
+      <a href="{{ url_for('dashboard') }}" class="px-6 py-3 bg-sage text-white font-semibold rounded-lg shadow hover:bg-sage-dark transition">Go to Dashboard</a>
+      {% else %}
+      <div class="flex gap-4">
+        <a href="{{ url_for('register') }}" class="px-6 py-3 bg-sage text-white font-semibold rounded-lg shadow hover:bg-sage-dark transition">Get Started</a>
+        <a href="{{ url_for('login') }}" class="px-6 py-3 border border-sage text-sage-dark font-semibold rounded-lg hover:bg-sage-light transition">Log In</a>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Hero Image -->
+    <div class="md:w-1/2 mt-10 md:mt-0 relative">
+      <img src="https://i.pinimg.com/736x/81/17/46/8117465a5cc1f428d9c04dfe35d4bedd.jpg" alt="Hair care hero" class="rounded-lg shadow-lg w-full object-cover h-96 md:h-[32rem]">
+      <div class="absolute inset-0 bg-gradient-to-br from-cream/50 via-cream/30 to-cream/80"></div>
+    </div>
+  </div>
+</section>
+
+<section class="bg-beige py-20">
+  <div class="max-w-7xl mx-auto px-6">
+    <h2 class="text-3xl font-bold text-center text-sage-dark mb-12">What ScalpAid Offers</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+      <div class="bg-cream p-6 rounded-lg shadow hover:shadow-lg transition flex flex-col items-center text-center">
+        <img src="https://as2.ftcdn.net/v2/jpg/06/07/24/11/1000_F_607241181_8WWQvPiPCfqqzr8CuT2xikZRYxhLcBl4.jpg" alt="Hair care icon" class="w-20 h-20 mb-4">
+        <h3 class="text-xl font-semibold mb-2">Moisture Tracking</h3>
+        <p class="text-sage-dark/80">Monitor your scalp moisture levels to prevent dryness and hair damage.</p>
+      </div>
+      <div class="bg-cream p-6 rounded-lg shadow hover:shadow-lg transition flex flex-col items-center text-center">
+        <img src="https://tse1.mm.bing.net/th/id/OIP.IGNnP95sn9EcJhbUuEmcFwHaHa?rs=1&pid=ImgDetMain&o=7&rm=3" alt="Shampoo icon" class="w-20 h-20 mb-4">
+        <h3 class="text-xl font-semibold mb-2">Temperature Insights</h3>
+        <p class="text-sage-dark/80">Track temperature to ensure your scalp stays in optimal condition.</p>
+      </div>
+      <div class="bg-cream p-6 rounded-lg shadow hover:shadow-lg transition flex flex-col items-center text-center">
+        <img src="https://c8.alamy.com/comp/2F7P4A3/insight-icon-in-comic-style-bulb-vector-cartoon-illustration-on-white-isolated-background-idea-business-concept-splash-effect-2F7P4A3.jpg" alt="Hair care icon" class="w-20 h-20 mb-4">
+        <h3 class="text-xl font-semibold mb-2">Personalized Insights</h3>
+        <p class="text-sage-dark/80">Get recommendations based on your hair type and goals.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="bg-sage py-20">
+  <div class="max-w-7xl mx-auto px-6 text-center text-white space-y-6">
+    <h2 class="text-4xl font-bold">Start Your Hair Health Journey Today</h2>
+    {% if session.user_id %}
+    <a href="{{ url_for('dashboard') }}" class="px-8 py-4 bg-cream text-sage-dark font-semibold rounded-lg shadow hover:bg-beige transition">Go to Dashboard</a>
+    {% else %}
+    <a href="{{ url_for('register') }}" class="px-8 py-4 bg-cream text-sage-dark font-semibold rounded-lg shadow hover:bg-beige transition">Create an Account</a>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
