@@ -10,14 +10,31 @@
 
         <!-- Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            <div class="mb-4">
-              {% for category, message in messages %}
-                <p class="text-sm p-2 rounded bg-red-100 text-red-700">{{ message }}</p>
-              {% endfor %}
-            </div>
-          {% endif %}
+        {% if messages %}
+        <div class="mb-4">
+            {% for category, message in messages %}
+            <p class="text-sm p-2 rounded bg-red-100 text-red-700">{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
         {% endwith %}
+
+        <!-- Google Sign-In Button -->
+        <div class="mb-6">
+            <div id="g_id_onload"
+                data-client_id="450199008564-3fbuh4h5vs8d6nl92au3vfcm05lospvj.apps.googleusercontent.com"
+                data-callback="handleGoogleSignIn" data-auto_prompt="false">
+            </div>
+            <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="signup_with"
+                data-shape="rectangular" data-logo_alignment="left" data-width="400">
+            </div>
+        </div>
+
+        <div class="relative flex items-center justify-center my-6">
+            <div class="border-t border-beige w-full"></div>
+            <span class="bg-white px-4 text-sage-dark text-sm">OR</span>
+            <div class="border-t border-beige w-full"></div>
+        </div>
 
         <form action="{{ url_for('register') }}" method="POST" class="space-y-4">
 
@@ -77,13 +94,47 @@
             </div>
 
             <!-- Submit -->
-            <button type="submit"
-                class="w-full bg-sage text-white py-2 rounded-lg hover:bg-sage-dark transition">
+            <button type="submit" class="w-full bg-sage text-white py-2 rounded-lg hover:bg-sage-dark transition">
                 Register
             </button>
         </form>
 
+        <p class="text-center text-sm text-sage-dark mt-4">
+            Already have an account? <a href="{{ url_for('login') }}" class="text-sage hover:underline">Login</a>
+        </p>
+
     </div>
 
 </div>
+
+<script>
+    function handleGoogleSignIn(response) {
+        console.log("Google Sign-In successful!");
+        console.log("Token:", response.credential);
+
+        fetch('/auth/google/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                token: response.credential
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Registration successful:', data);
+                    window.location.href = '/dashboard';
+                } else {
+                    alert('Registration failed: ' + data.message);
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('An error occurred during registration');
+            });
+    }
+</script>
+
 {% endblock %}
