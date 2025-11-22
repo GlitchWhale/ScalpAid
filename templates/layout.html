@@ -27,32 +27,63 @@
 <body class="bg-cream min-h-screen flex flex-col">
 
     <!-- Top Nav -->
-    <nav class="bg-sage text-white px-6 py-4 flex justify-between items-center shadow-md">
-        <div class="font-bold text-2xl">ScalpAid</div>
-        <ul class="hidden md:flex gap-6 font-medium">
-            <li><a href="{{ url_for('home') }}" class="hover:underline">Home</a></li>
-            <li><a href="{{ url_for('register') }}" class="hover:underline">Register</a></li>
-            <li><a href="{{ url_for('login') }}" class="hover:underline">Login</a></li>
+    <!-- Top Nav -->
+<nav class="bg-sage text-white px-6 py-4 flex justify-between items-center shadow-md">
+    <div class="font-bold text-2xl">ScalpAid</div>
+
+    <!-- Desktop Nav -->
+    <ul class="hidden md:flex gap-6 font-medium">
+        <li><a href="{{ url_for('home') }}" class="hover:underline">Home</a></li>
+
+        {% if session.get('user_id') %}
             <li><a href="{{ url_for('dashboard') }}" class="hover:underline">Dashboard</a></li>
             <li><a href="{{ url_for('profile') }}" class="hover:underline">Profile</a></li>
             <li><a href="{{ url_for('insights') }}" class="hover:underline">Insights</a></li>
             <li><a href="{{ url_for('history') }}" class="hover:underline">History</a></li>
             <li><a href="{{ url_for('logout') }}" class="hover:underline">Logout</a></li>
+        {% else %}
+            {% if users_exist %}
+                <li><a href="{{ url_for('login') }}" class="hover:underline">Login</a></li>
+            {% else %}
+                <li><a href="{{ url_for('register') }}" class="hover:underline">Register</a></li>
+                <li><a href="{{ url_for('login') }}" class="hover:underline">Login</a></li>
+            {% endif %}
+        {% endif %}
+    </ul>
 
+    <!-- Mobile Menu Button -->
+    <button id="mobile-menu-btn" class="md:hidden p-2 bg-sage-dark rounded-lg">
+        Menu
+    </button>
+</nav>
 
+<!-- Mobile Nav (Hidden by default) -->
+<div id="mobile-nav"
+     class="md:hidden hidden flex-col bg-sage text-white px-6 py-4 space-y-4 shadow-inner text-lg font-medium">
 
-        </ul>
-        <button class="md:hidden p-2 bg-sage-dark rounded-lg">Menu</button>
-    </nav>
+    <a href="{{ url_for('home') }}" class="block">Home</a>
+
+    {% if session.get('user_id') %}
+        <a href="{{ url_for('dashboard') }}" class="block">Dashboard</a>
+        <a href="{{ url_for('profile') }}" class="block">Profile</a>
+        <a href="{{ url_for('insights') }}" class="block">Insights</a>
+        <a href="{{ url_for('history') }}" class="block">History</a>
+        <a href="{{ url_for('logout') }}" class="block">Logout</a>
+    {% else %}
+        {% if users_exist %}
+            <a href="{{ url_for('login') }}" class="block">Login</a>
+        {% else %}
+            <a href="{{ url_for('register') }}" class="block">Register</a>
+            <a href="{{ url_for('login') }}" class="block">Login</a>
+        {% endif %}
+    {% endif %}
+</div>
 
     <!-- Dashboard Shell -->
     <div class="flex flex-1 flex-col md:flex-row">
 
         <!-- Sidebar -->
-        <aside class="w-full md:w-64 bg-sage-light/10 border-r border-beige p-4 space-y-2">
-            <a href="{{ url_for('dashboard') }}" class="block p-2 rounded hover:bg-sage-light text-sage-dark font-medium">Overview</a>
-            <a href="{{ url_for('sensor_data') }}" class="block p-2 rounded hover:bg-sage-light text-sage-dark font-medium">Sensor Data</a>
-        </aside>
+       
 
         <!-- Main Content -->
         <main class="flex-1 p-6 space-y-6">
@@ -106,6 +137,29 @@
             }
         }
     });
+</script>
+<script>
+    const mobileBtn = document.getElementById("mobile-menu-btn");
+    const mobileNav = document.getElementById("mobile-nav");
+
+    // Toggle menu
+    mobileBtn.addEventListener("click", () => {
+        mobileNav.classList.toggle("hidden");
+    });
+
+    // Auto-open menu on mobile devices
+    function autoOpenOnMobile() {
+        const isMobile = window.innerWidth < 768;
+        if (isMobile) {
+            mobileNav.classList.remove("hidden");
+        }
+    }
+
+    // Run on load
+    document.addEventListener("DOMContentLoaded", autoOpenOnMobile);
+
+    // Also run when screen is resized
+    window.addEventListener("resize", autoOpenOnMobile);
 </script>
 
 </body>

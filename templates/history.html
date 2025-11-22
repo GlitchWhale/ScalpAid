@@ -1,103 +1,98 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<!-- HISTORY PAGE -->
 <div class="max-w-5xl mx-auto bg-white rounded-2xl shadow-md p-8 space-y-10">
     <h2 class="text-3xl font-bold text-sage-dark mb-6">History Overview</h2>
 
-    <!-- Filters Section -->
+    <!-- Filters -->
     <div class="flex flex-wrap gap-4 mb-6">
-        <select class="p-3 rounded-xl border border-beige bg-cream text-sage-dark focus:ring-2 focus:ring-sage-dark transition">
-            <option>All Entries</option>
-            <option>Sensor Logs</option>
-            <option>Hair Diary</option>
-            <option>Product Usage</option>
+        <select class="p-3 rounded-xl border border-beige bg-cream text-sage-dark">
+            <option value="">All Entries</option>
+            <option value="sensor">Sensor Logs</option>
+            <option value="diary">Hair Diary</option>
+            <option value="product">Product Usage</option>
         </select>
 
-        <select class="p-3 rounded-xl border border-beige bg-cream text-sage-dark focus:ring-2 focus:ring-sage-dark transition">
-            <option>Newest First</option>
-            <option>Oldest First</option>
+        <select class="p-3 rounded-xl border border-beige bg-cream text-sage-dark">
+            <option value="new">Newest First</option>
+            <option value="old">Oldest First</option>
         </select>
     </div>
+
 
     <!-- Timeline Section -->
     <div class="space-y-8">
 
-        <!-- Example Timeline Card -->
+        {% for entry in history %}
+
         <div class="flex gap-4 items-start">
-            <div class="w-12 h-12 flex items-center justify-center bg-sage-light text-white rounded-full shadow-md">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2" />
-                </svg>
+
+            <!-- Icon Bubble -->
+            <div class="
+                w-12 h-12 flex items-center justify-center rounded-full shadow-md
+                {% if entry.type == 'sensor' %}
+                    bg-sage-light text-white
+                {% elif entry.type == 'diary' %}
+                    bg-sage text-white
+                {% elif entry.type == 'product' %}
+                    bg-sage-dark text-white
+                {% endif %}
+            ">
+                {% if entry.type == 'sensor' %}
+                    <!-- Sensor Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2" />
+                    </svg>
+
+                {% elif entry.type == 'diary' %}
+                    <!-- Diary Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 19.5A2.5 2.5 0 006.5 22h11a2.5 2.5 0 002.5-2.5v-15A2.5 2.5 0 0017.5 2h-11A2.5 2.5 0 004 4.5v15z" />
+                    </svg>
+
+                {% elif entry.type == 'product' %}
+                    <!-- Product Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-3-3v6m-7.5 8.25h15A2.25 2.25 0 0021.75 20V4A2.25 2.25 0 0019.5 1.75h-15A2.25 2.25 0 002.25 4v16A2.25 2.25 0 004.5 22.25z" />
+                    </svg>
+                {% endif %}
             </div>
 
-            <div class="bg-cream border border-beige rounded-xl p-5 shadow-sm flex-1 transition hover:shadow-md">
-                <h3 class="text-xl font-semibold text-sage-dark">Temperature Log Recorded</h3>
-                <p class="text-gray-700 mt-1">Temperature: 24°C • Moisture: 55%</p>
-                <p class="text-gray-500 text-sm mt-2">Jan 14, 2025 — 3:14 PM</p>
+
+            <!-- Card -->
+            <div class="bg-cream border border-beige rounded-xl p-5 shadow-sm flex-1 hover:shadow-md transition">
+                <h3 class="text-xl font-semibold text-sage-dark">{{ entry.title }}</h3>
+                <p class="text-gray-700 mt-1">{{ entry.details }}</p>
+                <p class="text-gray-500 text-sm mt-2">
+                    {{ entry.timestamp.strftime("%b %d, %Y — %I:%M %p") }}
+                </p>
             </div>
         </div>
 
-        <!-- Diary Entry Card -->
-        <div class="flex gap-4 items-start">
-            <div class="w-12 h-12 flex items-center justify-center bg-sage text-white rounded-full shadow-md">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 19.5A2.5 2.5 0 006.5 22h11a2.5 2.5 0 002.5-2.5v-15A2.5 2.5 0 0017.5 2h-11A2.5 2.5 0 004 4.5v15z" />
-                </svg>
-            </div>
-
-            <div class="bg-cream border border-beige rounded-xl p-5 shadow-sm flex-1 transition hover:shadow-md">
-                <h3 class="text-xl font-semibold text-sage-dark">Hair Diary Entry</h3>
-                <p class="text-gray-700 mt-1">"Noticed some dryness today, especially near the crown. Applied aloe-based serum."</p>
-                <p class="text-gray-500 text-sm mt-2">Jan 12, 2025 — 10:22 AM</p>
-            </div>
-        </div>
-
-        <!-- Product Usage Card -->
-        <div class="flex gap-4 items-start">
-            <div class="w-12 h-12 flex items-center justify-center bg-sage-dark text-white rounded-full shadow-md">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-3-3v6m-7.5 8.25h15A2.25 2.25 0 0021.75 20V4A2.25 2.25 0 0019.5 1.75h-15A2.25 2.25 0 002.25 4v16A2.25 2.25 0 004.5 22.25z" />
-                </svg>
-            </div>
-
-            <div class="bg-cream border border-beige rounded-xl p-5 shadow-sm flex-1 transition hover:shadow-md">
-                <h3 class="text-xl font-semibold text-sage-dark">Product Applied</h3>
-                <p class="text-gray-700 mt-1">Used: Hydrating scalp serum (2 pumps)</p>
-                <p class="text-gray-500 text-sm mt-2">Jan 10, 2025 — 8:05 AM</p>
-            </div>
-        </div>
+        {% endfor %}
 
     </div>
+
 
     <!-- Achievements Section -->
     <div class="bg-white mt-10 p-6 rounded-xl border border-beige shadow-sm">
         <h3 class="text-2xl font-semibold text-sage-dark mb-4">Your Achievements</h3>
 
         <div class="grid md:grid-cols-3 gap-6">
-
-            <div class="p-5 bg-cream border border-beige rounded-xl shadow-sm text-center hover:shadow-md transition">
-                <svg class="w-10 h-10 mx-auto text-sage-dark" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2" />
-                </svg>
+            <div class="p-5 bg-cream border border-beige rounded-xl text-center hover:shadow-md">
                 <p class="mt-2 font-medium text-gray-700">7-Day Tracking Streak</p>
             </div>
 
-            <div class="p-5 bg-cream border border-beige rounded-xl shadow-sm text-center hover:shadow-md transition">
-                <svg class="w-10 h-10 mx-auto text-sage-dark" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                </svg>
+            <div class="p-5 bg-cream border border-beige rounded-xl text-center hover:shadow-md">
                 <p class="mt-2 font-medium text-gray-700">Consistent Care</p>
             </div>
 
-            <div class="p-5 bg-cream border border-beige rounded-xl shadow-sm text-center hover:shadow-md transition">
-                <svg class="w-10 h-10 mx-auto text-sage-dark" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75v10.5m5.25-5.25H6.75" />
-                </svg>
+            <div class="p-5 bg-cream border border-beige rounded-xl text-center hover:shadow-md">
                 <p class="mt-2 font-medium text-gray-700">Improvement Logged</p>
             </div>
         </div>
     </div>
+
 </div>
 
 {% endblock %}
