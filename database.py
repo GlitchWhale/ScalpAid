@@ -16,6 +16,7 @@ class User(Base):
     purpose = Column(String(255), nullable=True)
     password = Column(String(255), nullable=False)
     created_at = Column(DateTime, server_default=func.now())
+    google_id = Column(String(255), unique=True, nullable=True)
 
 
 class SensorReading(Base):

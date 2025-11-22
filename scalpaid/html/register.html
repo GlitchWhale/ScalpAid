@@ -1,24 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ScalpAid – Register</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
   <link rel="stylesheet" href="../css/style.css" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
+
 <body>
   <header class="top-nav">
-     <div class="logo" style="display: flex; align-items: center; gap: 10px">
-        <img
-          src="../images/Logo.png"
-          alt="ScalpAid Logo"
-          style="height: 60px; width: auto"
-        />
-        <span style="font-weight: 700; font-size: 1.5rem; color: #5e7554">
-          ScalpAid
-        </span>
-      </div>
+    <div class="logo" style="display: flex; align-items: center; gap: 10px">
+      <img src="../images/Logo.png" alt="ScalpAid Logo" style="height: 60px; width: auto" />
+      <span style="font-weight: 700; font-size: 1.5rem; color: #5e7554">
+        ScalpAid
+      </span>
+    </div>
     <nav class="nav-links">
       <a href="index.html">Home</a>
       <a href="login.html">Login</a>
@@ -30,6 +29,18 @@
     <div class="card" style="max-width:400px; width:100%;">
       <div class="page-title">Create Account</div>
       <p class="page-subtitle">Join ScalpAid to start tracking your scalp health.</p>
+
+
+      <div style="margin: 20px 0; text-align: center;">
+        <div id="g_id_onload" data-client_id="450199008564-3fbuh4h5vs8d6nl92au3vfcm05lospvj.apps.googleusercontent.com"
+          data-callback="handleGoogleSignIn" data-auto_prompt="false">
+        </div>
+        <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with"
+          data-shape="rectangular" data-logo_alignment="left">
+        </div>
+      </div>
+
+      <p style="text-align: center; color: #5e7554; margin: 10px 0;">- OR -</p>
 
       <form id="registerForm">
         <input type="text" id="name" class="input-field" placeholder="Full Name" required />
@@ -96,5 +107,39 @@
       window.location.href = "profile.html";
     });
   </script>
+
+  <script>
+    function handleGoogleSignIn(response) {
+      // The response contains a JWT token from Google
+      console.log("Google Sign-In successful!");
+      console.log("Token:", response.credential);
+
+      // Send the token to your Flask backend
+      fetch('http://localhost:5000/auth/google/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token: response.credential
+        })
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            console.log('Registration successful:', data);
+            // Redirect to home or dashboard
+            window.location.href = '/index.html';
+          } else {
+            alert('Registration failed: ' + data.message);
+          }
+        })
+        .catch((error) => {
+          console.error('Error:', error);
+          alert('An error occurred during registration');
+        });
+    }
+  </script>
 </body>
+
 </html>
