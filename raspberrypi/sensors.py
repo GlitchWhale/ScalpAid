@@ -7,7 +7,7 @@ import board
 import busio
 from adafruit_ads1x15.ads1115 import ADS1115
 from adafruit_ads1x15.analog_in import AnalogIn
-
+from pubnub.callbacks import SubscribeCallback
 
 #GPIO pins
 LED_PIN = 27
@@ -66,7 +66,25 @@ pnconfig.subscribe_key = "sub-c-965e4329-6565-4fba-bb02-05774be3a3c3"
 pnconfig.uuid = "raspberrypi-1"
 
 pubnub = PubNub(pnconfig)
-CHANNEL = "scalp_data"
+DATA_CHANNEL = "scalp_data"
+COMMAND_CHANNEL="scalp_commands"
+
+start_reading=False
+class CommandListener(SubscribeCallback):
+    def message(self, pubnub, event):
+        global start_reading
+        msg = event.message
+
+        if msg.get("command")=="start":
+            print("Recieved start")
+            start_reading= True
+
+        if msg.get("command")=="stop":
+            print("Recieved stop")
+            start_reading=False
+
+pubnub.add_listener(CommandListener())
+pubnub.subscribe().channels(COMMAND_CHANNEL).execute()
 
 def publish(temp, state, moisture_raw, moisture_voltage, percent):
     message={
@@ -79,10 +97,11 @@ def publish(temp, state, moisture_raw, moisture_voltage, percent):
         "timestamp": int(time.time())
     }
     try:
-        pubnub.publish().channel(CHANNEL).message(message).pn_async(lambda e, s: None)
+        pubnub.publish().channel(DATA_CHANNEL).message(message).pn_async(lambda e, s: None)
         print("sent to pubnub:", message)
     except Exception as e:
         print("pubnub error:",e)
+
 
 #thresholds
 WARN_ON=29.5
@@ -96,6 +115,13 @@ beep_interval=0.25
 
 try:
     while True:
+
+        if not start_reading:
+            GPIO.output(LED_PIN, GPIO.LOW)
+            GPIO.output(BUZZER_PIN,GPIO.LOW)
+            time.sleep(0.2)
+            continue
+
         t=read_temp_c()
         if t is None:
             print("sensor read failure")
@@ -149,4 +175,6 @@ finally:
     GPIO.output(LED_PIN, GPIO.LOW)
     GPIO.output(BUZZER_PIN, GPIO.LOW)
     GPIO.cleanup()
+
+
 
