@@ -1,33 +1,64 @@
 {% extends "layout.html" %}
-
-{% block title %}Raspberry Pi Control | ScalpAid{% endblock %}
+{% block title %}Pi Control{% endblock %}
 
 {% block content %}
-<section class="bg-cream py-20">
-    <div class="max-w-4xl mx-auto px-6 text-center">
 
-        <h1 class="text-4xl font-bold text-sage-dark mb-6">
-            Raspberry Pi Control
-        </h1>
+<div class="max-w-3xl mx-auto py-10">
+    <h1 class="text-3xl font-bold mb-6 text-sage-dark">Raspberry Pi Control</h1>
 
-        <p class="text-sage-dark/80 text-lg mb-10">
-            Start or stop the scalp sensor hardware remotely.
-        </p>
+    <!-- Control Buttons -->
+    <div class="flex gap-4 mb-10">
+        <a href="{{ url_for('start_pi') }}">
+            <button class="px-6 py-3 bg-sage text-white rounded-lg hover:bg-sage-dark">
+                Start Sensors
+            </button>
+        </a>
 
-        <div class="flex flex-col md:flex-row gap-6 justify-center">
-            <!-- Start Button -->
-            <a href="{{ url_for('start_pi') }}"
-               class="px-8 py-4 bg-sage text-white font-semibold rounded-lg shadow hover:bg-sage-dark transition">
-                Start Sensor Readings
-            </a>
-
-            <!-- Stop Button -->
-            <a href="{{ url_for('stop_pi') }}"
-               class="px-8 py-4 bg-red-500 text-white font-semibold rounded-lg shadow hover:bg-red-600 transition">
-                Stop Sensor Readings
-            </a>
-        </div>
-
+        <a href="{{ url_for('stop_pi') }}">
+            <button class="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                Stop Sensors
+            </button>
+        </a>
     </div>
-</section>
+
+    <!-- LIVE SENSOR DATA PANEL -->
+    <div class="bg-cream shadow p-6 rounded-lg border border-sage-light">
+        <h2 class="text-2xl font-semibold mb-4 text-sage-dark">Live Sensor Data</h2>
+
+        <p><strong>Temperature:</strong> <span id="temp">---</span></p>
+        <p><strong>Moisture %:</strong> <span id="moist">---</span></p>
+        <p><strong>Voltage:</strong> <span id="volt">---</span></p>
+        <p><strong>Moisture Raw:</strong> <span id="raw">---</span></p>
+        <p><strong>State:</strong> <span id="state">---</span></p>
+        <p><strong>Last Updated:</strong> <span id="updated">---</span></p>
+    </div>
+</div>
+
+<!-- PUBNUB LIVE UPDATE SCRIPT -->
+<script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.0.min.js"></script>
+
+<script>
+    const pubnub = new PubNub({
+        subscribeKey: "sub-c-965e4329-6565-4fba-bb02-05774be3a3c3",
+        uuid: "flask-browser"
+    });
+
+    pubnub.subscribe({ channels: ["scalp_data"] });
+
+    pubnub.addListener({
+        message: function(event) {
+            const d = event.message;
+
+            document.getElementById("temp").textContent = d.temperature?.toFixed(2) + " °C";
+            document.getElementById("moist").textContent = d.moisture_percent?.toFixed(1) + "%";
+            document.getElementById("volt").textContent = d.moisture_voltage?.toFixed(3) + " V";
+            document.getElementById("raw").textContent = d.moisture_raw;
+            document.getElementById("state").textContent = d.state;
+
+            const ts = new Date(d.timestamp * 1000);
+            document.getElementById("updated").textContent = ts.toLocaleTimeString();
+        }
+    });
+</script>
+
 {% endblock %}
