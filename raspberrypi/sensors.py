@@ -43,9 +43,20 @@ i2c = busio.I2C(board.SCL, board.SDA)
 ads = ADS1115(i2c)
 moisture_channel = AnalogIn(ads,0)
 
+DRY_RAW=17824
+WET_RAW=5280
+
+def moisture_to_percent(raw):
+    percent = (DRY_RAW - raw)/(DRY_RAW-WET_RAW)
+    percent=max(0, min(percent,1))
+    return round(percent*100,1)
+
+
 def read_moisture():
-    """return tuple: (raw_value, voltage)"""
-    return moisture_channel.value, moisture_channel.voltage
+    raw=moisture_channel.value
+    voltage=moisture_channel.voltage
+    percent=moisture_to_percent(raw)
+    return raw, voltage, percent
 
 
 #pubnub setup
@@ -57,13 +68,14 @@ pnconfig.uuid = "raspberrypi-1"
 pubnub = PubNub(pnconfig)
 CHANNEL = "scalp_data"
 
-def publish(temp, state, moisture_raw, moisture_voltage):
+def publish(temp, state, moisture_raw, moisture_voltage, percent):
     message={
         "device":"pi1",
         "temperature":temp,
         "state": state,
         "moisture_raw": moisture_raw,
         "moisture_voltage": moisture_voltage,
+        "moisture_percent":percent,
         "timestamp": int(time.time())
     }
     try:
@@ -90,8 +102,13 @@ try:
             time.sleep(0.5)
             continue
 
-        moisture_raw, moisture_voltage= read_moisture()
-        print(f"temperature: {t:.2f} C | Moisture V: {moisture_voltage:.3f} | state={state}")
+        moisture_raw, moisture_voltage, moisture_percent= read_moisture()
+        print(
+            f"Temp: {t:.2f} C | "
+            f"Moisture: {moisture_percent}% |"
+            f"(raw={moisture_raw}, V={moisture_voltage:.3f}) |"
+            f"State={state}"
+        )
 
 #state logic
         if state == "normal":
@@ -123,7 +140,7 @@ try:
             GPIO.output(BUZZER_PIN, GPIO.LOW)
 
 #publish to pubnub
-        publish(t,state,moisture_raw,moisture_voltage)
+        publish(t,state,moisture_raw,moisture_voltage,moisture_percent)
         time.sleep(0.3)
 
 except KeyboardInterrupt:
@@ -132,6 +149,4 @@ finally:
     GPIO.output(LED_PIN, GPIO.LOW)
     GPIO.output(BUZZER_PIN, GPIO.LOW)
     GPIO.cleanup()
-
-
 
