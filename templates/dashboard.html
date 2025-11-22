@@ -1,28 +1,145 @@
 {% extends "layout.html" %}
+{% block title %}Dashboard | ScalpAid{% endblock %}
+
 {% block content %}
+<div class="max-w-5xl mx-auto py-10 space-y-10">
 
-<h1 class="text-2xl font-bold text-sage-dark">Live Sensor Dashboard</h1>
+    <!-- HEADER -->
+    <div>
+        <h1 class="text-3xl font-bold text-sage-dark">ScalpAid Dashboard</h1>
+        <p class="text-beige-dark">Live sensor monitoring + device control</p>
+    </div>
 
-<div class="sensor-values">
-    <p>Temperature: <span id="temp-value">--</span> °C</p>
-    <p>Moisture: <span id="moisture-value">--</span> %</p>
+    <!-- START / STOP BUTTONS -->
+    <div class="flex gap-4">
+        <a href="{{ url_for('start_pi') }}">
+            <button class="px-6 py-3 bg-sage text-white rounded-lg hover:bg-sage-dark transition">
+                Start Sensors
+            </button>
+        </a>
+
+        <a href="{{ url_for('stop_pi') }}">
+            <button class="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
+                Stop Sensors
+            </button>
+        </a>
+    </div>
+
+    <!-- LIVE SENSOR CARDS -->
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+
+        <div class="bg-cream p-5 rounded-xl shadow border border-beige">
+            <h3 class="text-sage-dark font-semibold">Temperature</h3>
+            <p id="temp" class="text-3xl font-bold">--</p>
+        </div>
+
+        <div class="bg-cream p-5 rounded-xl shadow border border-beige">
+            <h3 class="text-sage-dark font-semibold">Moisture %</h3>
+            <p id="moist" class="text-3xl font-bold">--</p>
+        </div>
+
+        <div class="bg-cream p-5 rounded-xl shadow border border-beige">
+            <h3 class="text-sage-dark font-semibold">Voltage</h3>
+            <p id="volt" class="text-3xl font-bold">--</p>
+        </div>
+
+        <div class="bg-cream p-5 rounded-xl shadow border border-beige">
+            <h3 class="text-sage-dark font-semibold">Raw Moisture</h3>
+            <p id="raw" class="text-3xl font-bold">--</p>
+        </div>
+
+        <div class="bg-cream p-5 rounded-xl shadow border border-beige">
+            <h3 class="text-sage-dark font-semibold">State</h3>
+            <p id="state" class="text-2xl font-semibold">--</p>
+        </div>
+
+        <div class="bg-cream p-5 rounded-xl shadow border border-beige">
+            <h3 class="text-sage-dark font-semibold">Last Updated</h3>
+            <p id="updated" class="text-xl">--</p>
+        </div>
+    </div>
+
+    <!-- GRAPH -->
+    <div class="bg-white p-6 rounded-xl shadow border border-beige">
+        <h2 class="text-xl font-semibold text-sage-dark mb-4">Live Sensor Graph</h2>
+        <canvas id="sensorChart" height="120"></canvas>
+    </div>
 </div>
 
-<canvas id="sensorChart" width="600" height="300"></canvas>
-
+<!-- PubNub -->
+<script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
+    // ----- PUBNUB CONFIG -----
+    const pubnub = new PubNub({
+        subscribeKey: "sub-c-965e4329-6565-4fba-bb02-05774be3a3c3",
+        uuid: "dashboard-client"
+    });
+
+    pubnub.subscribe({ channels: ["scalp_data"] });
+
+    // ----- CHART SETUP -----
     const ctx = document.getElementById('sensorChart').getContext('2d');
 
-    window.sensorChart = new Chart(ctx, {
+    const chart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: [],
             datasets: [
-                { label: 'Temperature (°C)', data: [] },
-                { label: 'Moisture (%)', data: [] }
+                {
+                    label: "Temperature (°C)",
+                    data: [],
+                    borderWidth: 2,
+                    tension: 0.3
+                },
+                {
+                    label: "Moisture (%)",
+                    data: [],
+                    borderWidth: 2,
+                    tension: 0.3
+                }
             ]
+        },
+        options: {
+            plugins: {
+                legend: { labels: { color: "#6A7F5F" } }
+            },
+            scales: {
+                x: { ticks: { color: "#8B7E74" } },
+                y: { ticks: { color: "#8B7E74" } }
+            }
+        }
+    });
+
+    // ----- REAL-TIME UPDATES -----
+    pubnub.addListener({
+        message: function (event) {
+            const d = event.message;
+
+            // Update text cards
+            document.getElementById("temp").textContent = d.temperature?.toFixed(2) + " °C";
+            document.getElementById("moist").textContent = d.moisture_percent?.toFixed(1) + "%";
+            document.getElementById("volt").textContent = d.moisture_voltage?.toFixed(3) + " V";
+            document.getElementById("raw").textContent = d.moisture_raw;
+            document.getElementById("state").textContent = d.state;
+
+            const ts = new Date(d.timestamp * 1000);
+            document.getElementById("updated").textContent = ts.toLocaleTimeString();
+
+            // Update chart
+            const t = ts.toLocaleTimeString();
+            chart.data.labels.push(t);
+            chart.data.datasets[0].data.push(d.temperature);
+            chart.data.datasets[1].data.push(d.moisture_percent);
+
+            // Keep only latest 20 points
+            if (chart.data.labels.length > 20) {
+                chart.data.labels.shift();
+                chart.data.datasets.forEach(ds => ds.data.shift());
+            }
+
+            chart.update();
         }
     });
 </script>
