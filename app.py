@@ -191,9 +191,6 @@ def logout():
 # -------------------------------------------------------
 # Home Route
 # -------------------------------------------------------
-@app.route('/')
-def home():
-    return render_template('home.html')
 
 
 # -------------------------------------------------------
@@ -333,6 +330,38 @@ def stop_pi():
     pubnub.publish().channel("scalp_commands").message({"command": "stop"}).sync()
     return redirect(url_for("pi_page"))
 
+
+@app.route('/')
+def home():
+    # If logged in, skip home → dashboard
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
+
+    # Check if any users exist in DB
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM users")
+    count = cursor.fetchone()[0]
+    cursor.close()
+    conn.close()
+
+    # If users exist, skip home → go to login
+    if count > 0:
+        return redirect(url_for('login'))
+
+    # If no users exist → first-time user → show home page
+    return render_template('home.html')
+
+@app.context_processor
+def inject_user_state():
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM users")
+    count = cursor.fetchone()[0]
+    cursor.close()
+    conn.close()
+
+    return {"users_exist": count > 0}
 
 # -------------------------------------------------------
 # Run Server

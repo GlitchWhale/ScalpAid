@@ -29,19 +29,36 @@
     <!-- Top Nav -->
     <nav class="bg-sage text-white px-6 py-4 flex justify-between items-center shadow-md">
         <div class="font-bold text-2xl">ScalpAid</div>
-        <ul class="hidden md:flex gap-6 font-medium">
-            <li><a href="{{ url_for('home') }}" class="hover:underline">Home</a></li>
+       <ul class="hidden md:flex gap-6 font-medium">
+
+    <!-- Always visible -->
+    <li><a href="{{ url_for('home') }}" class="hover:underline">Home</a></li>
+
+    {% if session.get('user_id') %}
+        <!-- LOGGED-IN NAV -->
+        <li><a href="{{ url_for('dashboard') }}" class="hover:underline">Dashboard</a></li>
+        <li><a href="{{ url_for('profile') }}" class="hover:underline">Profile</a></li>
+        <li><a href="{{ url_for('insights') }}" class="hover:underline">Insights</a></li>
+        <li><a href="{{ url_for('history') }}" class="hover:underline">History</a></li>
+        <li><a href="{{ url_for('logout') }}" class="hover:underline">Logout</a></li>
+         <aside class="w-full md:w-64 bg-sage-light/10 border-r border-beige p-4 space-y-2">
+            <a href="{{ url_for('dashboard') }}" class="block p-2 rounded hover:bg-sage-light text-sage-dark font-medium">Overview</a>
+            <a href="{{ url_for('sensor_data') }}" class="block p-2 rounded hover:bg-sage-light text-sage-dark font-medium">Sensor Data</a>
+        </aside>
+
+    {% else %}
+        <!-- LOGGED-OUT NAV -->
+        {% if users_exist %}
+            <!-- Registered user → Hide register -->
+            <li><a href="{{ url_for('login') }}" class="hover:underline">Login</a></li>
+        {% else %}
+            <!-- First time user → Show register -->
             <li><a href="{{ url_for('register') }}" class="hover:underline">Register</a></li>
             <li><a href="{{ url_for('login') }}" class="hover:underline">Login</a></li>
-            <li><a href="{{ url_for('dashboard') }}" class="hover:underline">Dashboard</a></li>
-            <li><a href="{{ url_for('profile') }}" class="hover:underline">Profile</a></li>
-            <li><a href="{{ url_for('insights') }}" class="hover:underline">Insights</a></li>
-            <li><a href="{{ url_for('history') }}" class="hover:underline">History</a></li>
-            <li><a href="{{ url_for('logout') }}" class="hover:underline">Logout</a></li>
+        {% endif %}
+    {% endif %}
+</ul>
 
-
-
-        </ul>
         <button class="md:hidden p-2 bg-sage-dark rounded-lg">Menu</button>
     </nav>
 
@@ -49,10 +66,7 @@
     <div class="flex flex-1 flex-col md:flex-row">
 
         <!-- Sidebar -->
-        <aside class="w-full md:w-64 bg-sage-light/10 border-r border-beige p-4 space-y-2">
-            <a href="{{ url_for('dashboard') }}" class="block p-2 rounded hover:bg-sage-light text-sage-dark font-medium">Overview</a>
-            <a href="{{ url_for('sensor_data') }}" class="block p-2 rounded hover:bg-sage-light text-sage-dark font-medium">Sensor Data</a>
-        </aside>
+       
 
         <!-- Main Content -->
         <main class="flex-1 p-6 space-y-6">
