@@ -60,6 +60,53 @@
             {% endblock %}
         </main>
     </div>
+<!-- GLOBAL PUBNUB SCRIPT (available on every page) -->
+<script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.0.min.js"></script>
+
+<script>
+    const pubnub = new PubNub({
+        subscribeKey: "sub-c-965e4329-6565-4fba-bb02-05774be3a3c3",
+        uuid: "flask-client"
+    });
+
+    pubnub.subscribe({ channels: ["scalp_data"] });
+
+    pubnub.addListener({
+        message: function(event) {
+            const d = event.message;
+
+            // SAFELY update ANY element on ANY page
+            function update(id, value) {
+                const el = document.getElementById(id);
+                if (el) el.textContent = value;
+            }
+
+            update("temp", d.temperature?.toFixed(2) + " °C");
+            update("temp-value", d.temperature?.toFixed(2));  // For chart page
+
+            update("moist", d.moisture_percent?.toFixed(1) + "%");
+            update("moisture-value", d.moisture_percent?.toFixed(1)); // For chart page
+
+            update("volt", d.moisture_voltage?.toFixed(3) + " V");
+            update("raw", d.moisture_raw);
+            update("state", d.state);
+
+            if (d.timestamp) {
+                const ts = new Date(d.timestamp * 1000);
+                update("updated", ts.toLocaleTimeString());
+                update("time", ts.toLocaleTimeString());
+            }
+
+            // Update chart if present
+            if (window.sensorChart) {
+                sensorChart.data.labels.push(new Date().toLocaleTimeString());
+                sensorChart.data.datasets[0].data.push(d.temperature);
+                sensorChart.data.datasets[1].data.push(d.moisture_percent);
+                sensorChart.update();
+            }
+        }
+    });
+</script>
 
 </body>
 </html>
