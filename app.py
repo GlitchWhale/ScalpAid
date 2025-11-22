@@ -8,6 +8,60 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import mysql.connector
 from pubnub_client import publish_sensor_data
 
+import threading
+from pubnub.pubnub import PubNub
+from pubnub.pnconfiguration import PNConfiguration
+from pubnub.callbacks import SubscribeCallback
+
+
+#-------pubnub config--------
+pnconfig = PNConfiguration()
+pnconfig.subscribe_key = "sub-c-965e4329-6565-4fba-bb02-05774be3a3c3"
+pnconfig.publish_key = "pub-c-72867b34-4207-47de-a982-c35d4dbf14a8"
+pnconfig.uuid = "flask-server"
+
+pubnub = PubNub(pnconfig)
+
+#-----pubnub listener------
+class ScalpListener(SubscribeCallback):
+    def message(self, pubnub, event):
+        data = event.message
+        print("Received:", data)
+
+        device = data.get("device")
+        temperature = data.get("temperature")
+        state = data.get("state")
+        moisture_raw = data.get("moisture_raw")
+        moisture_voltage = data.get("moisture_voltage")
+        timestamp = data.get("timestamp")
+
+        conn = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="",
+            database="scalpaid_test"
+        )
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            INSERT INTO readings (device, temperature, state, moisture_raw, moisture_voltage, timestamp)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            """,
+            (device, temperature, state, moisture_raw, moisture_voltage, timestamp)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+def start_pubnub_listener():
+    pubnub.add_listener(ScalpListener())
+    pubnub.subscribe().channels("scalp_data").execute()
+
+threading.Thread(target=start_pubnub_listener, daemon=True).start()
+
+
 # -------------------------------------------------------
 # Flask Setup
 # -------------------------------------------------------
@@ -230,6 +284,23 @@ def history():
         })
 
     return render_template('history.html', readings=decrypted_readings)
+
+#------------PI CONTROL ROUTES------------
+@app.route("/pi")
+def pi_page():
+    return render_template("pi.html")
+
+@app.route("/start_pi")
+def start_pi():
+    pubnub.publish().channel("scalp_commands").message({"command": "start"}).sync()
+    return redirect(url_for("pi_page"))
+
+@app.route("/stop_pi")
+def stop_pi():
+    pubnub.publish().channel("scalp_commands").message({"command": "stop"}).sync()
+    return redirect(url_for("pi_page"))
+
+
 # -------------------------------------------------------
 # Run Server
 # -------------------------------------------------------

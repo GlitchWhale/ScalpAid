@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block title %}Raspberry Pi Control | ScalpAid{% endblock %}
+
+{% block content %}
+<section class="bg-cream py-20">
+    <div class="max-w-4xl mx-auto px-6 text-center">
+
+        <h1 class="text-4xl font-bold text-sage-dark mb-6">
+            Raspberry Pi Control
+        </h1>
+
+        <p class="text-sage-dark/80 text-lg mb-10">
+            Start or stop the scalp sensor hardware remotely.
+        </p>
+
+        <div class="flex flex-col md:flex-row gap-6 justify-center">
+            <!-- Start Button -->
+            <a href="{{ url_for('start_pi') }}"
+               class="px-8 py-4 bg-sage text-white font-semibold rounded-lg shadow hover:bg-sage-dark transition">
+                Start Sensor Readings
+            </a>
+
+            <!-- Stop Button -->
+            <a href="{{ url_for('stop_pi') }}"
+               class="px-8 py-4 bg-red-500 text-white font-semibold rounded-lg shadow hover:bg-red-600 transition">
+                Stop Sensor Readings
+            </a>
+        </div>
+
+    </div>
+</section>
+{% endblock %}
