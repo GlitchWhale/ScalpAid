@@ -270,20 +270,27 @@ def history():
         return redirect(url_for('login'))
 
     db = SessionLocal()
-    readings = db.query(SensorReading).order_by(SensorReading.created_at.desc()).limit(100).all()
+    readings = (
+        db.query(SensorReading)
+        .order_by(SensorReading.created_at.desc())
+        .limit(100)
+        .all()
+    )
     db.close()
 
-    # Decrypt readings for display
-    decrypted_readings = []
+    # Convert sensor readings → timeline history entries
+    history_entries = []
+
     for r in readings:
-        decrypted_readings.append({
-            "device_id": r.device_id,
-            "moisture": r.get_moisture(),
-            "temperature": r.get_temperature(),
-            "created_at": r.created_at
+        history_entries.append({
+            "type": "sensor",
+            "title": "Sensor Log Recorded",
+            "details": f"Temperature: {r.get_temperature()}°C • Moisture: {r.get_moisture()}%",
+            "timestamp": r.created_at,
         })
 
-    return render_template('history.html', readings=decrypted_readings)
+    return render_template("history.html", history=history_entries)
+
 
 #------------PI CONTROL ROUTES------------
 @app.route("/pi")
