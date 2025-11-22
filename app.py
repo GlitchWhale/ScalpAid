@@ -33,27 +33,53 @@ class ScalpListener(SubscribeCallback):
         state = data.get("state")
         moisture_raw = data.get("moisture_raw")
         moisture_voltage = data.get("moisture_voltage")
+        moisture_percent = data.get("moisture_percent")
         timestamp = data.get("timestamp")
 
-        conn = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",
-            database="scalpaid_test"
-        )
-        cursor = conn.cursor()
+        try:
+            conn = mysql.connector.connect(
+                host=DB_CONFIG["host"],
+                user=DB_CONFIG["user"],
+                password=DB_CONFIG["password"],
+                database=DB_CONFIG["database"],
+                port=DB_CONFIG["port"]
+            )
+            print
+            cursor = conn.cursor()
 
-        cursor.execute(
-            """
-            INSERT INTO readings (device, temperature, state, moisture_raw, moisture_voltage, timestamp)
-            VALUES (%s, %s, %s, %s, %s, %s)
-            """,
-            (device, temperature, state, moisture_raw, moisture_voltage, timestamp)
-        )
+            cursor.execute("""
+                INSERT INTO sensor_readings (
+                    device,
+                    temperature,
+                    state,
+                    moisture_raw,
+                    moisture_voltage,
+                    moisture_percent,
+                    timestamp
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (
+                device,
+                temperature,
+                state,
+                moisture_raw,
+                moisture_voltage,
+                moisture_percent,
+                timestamp
+            ))
 
-        conn.commit()
-        cursor.close()
-        conn.close()
+            conn.commit()
+            print("Saved to AWS DB.")
+
+        except Exception as e:
+            print("DB ERROR:", e)
+
+        finally:
+            try:
+                cursor.close()
+                conn.close()
+            except:
+                pass
 
 def start_pubnub_listener():
     pubnub.add_listener(ScalpListener())
