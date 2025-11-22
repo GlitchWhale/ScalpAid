@@ -30,30 +30,33 @@ class ScalpListener(SubscribeCallback):
 
         device = data.get("device")
         temperature = data.get("temperature")
-        state = data.get("state")
-        moisture_raw = data.get("moisture_raw")
-        moisture_voltage = data.get("moisture_voltage")
+        moisture_percent = data.get("moisture_percent")
         timestamp = data.get("timestamp")
 
-        conn = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",
-            database="scalpaid_test"
-        )
-        cursor = conn.cursor()
+        # --- Save using SQLAlchemy (new database) ---
+        db = SessionLocal()
+        try:
+            reading = SensorReading(
+                device_id=device,
+                moisture_cipher="",
+                temperature_cipher=""
+            )
 
-        cursor.execute(
-            """
-            INSERT INTO readings (device, temperature, state, moisture_raw, moisture_voltage, timestamp)
-            VALUES (%s, %s, %s, %s, %s, %s)
-            """,
-            (device, temperature, state, moisture_raw, moisture_voltage, timestamp)
-        )
+            reading.set_moisture(str(moisture_percent))
+            reading.set_temperature(str(temperature))
 
-        conn.commit()
-        cursor.close()
-        conn.close()
+            db.add(reading)
+            db.commit()
+            print("Saved new reading to sensor_readings table")
+
+        except Exception as e:
+            db.rollback()
+            print("DB ERROR:", e)
+
+        finally:
+            db.close()
+
+
 
 def start_pubnub_listener():
     pubnub.add_listener(ScalpListener())
