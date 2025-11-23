@@ -13,6 +13,16 @@ from pubnub.pubnub import PubNub
 from pubnub.pnconfiguration import PNConfiguration
 from pubnub.callbacks import SubscribeCallback
 
+from flask import request
+from datetime import datetime, timedelta
+
+from flask import Flask, flash, redirect, render_template, request, session, url_for
+from datetime import datetime
+from sqlalchemy import func
+from database import SessionLocal, SensorReading
+from dotenv import load_dotenv
+load_dotenv()
+
 
 #-------pubnub config--------
 pnconfig = PNConfiguration()
@@ -78,8 +88,9 @@ class ScalpListener(SubscribeCallback):
             try:
                 cursor.close()
                 conn.close()
-            except:
+            except Exception:
                 pass
+
 
 def start_pubnub_listener():
     pubnub.add_listener(ScalpListener())
@@ -286,33 +297,83 @@ def insights():
     return render_template('insights.html')
 
 
-@app.route('/history')
+from datetime import datetime, timedelta
+
+from datetime import datetime, timedelta
+import pytz
+
+from datetime import datetime, timezone
+
+@app.route('/history', methods=['GET'])
 def history():
     if 'user_id' not in session:
         flash("Please log in first.", "warning")
         return redirect(url_for('login'))
 
-    db = SessionLocal()
-    readings = (
-        db.query(SensorReading)
-        .order_by(SensorReading.created_at.desc())
-        .limit(100)
-        .all()
-    )
-    db.close()
-
-    # Convert sensor readings → timeline history entries
+    selected_date = request.args.get('date')
     history_entries = []
 
-    for r in readings:
-        history_entries.append({
-            "type": "sensor",
-            "title": "Sensor Log Recorded",
-            "details": f"Temperature: {r.get_temperature()}°C • Moisture: {r.get_moisture()}%",
-            "timestamp": r.created_at,
-        })
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor(dictionary=True)
 
-    return render_template("history.html", history=history_entries)
+        if selected_date:
+            # Convert selected date to start/end timestamps in UTC
+            date_obj = datetime.strptime(selected_date, "%Y-%m-%d").date()
+            start_dt = datetime.combine(date_obj, datetime.min.time(), tzinfo=timezone.utc)
+            end_dt = datetime.combine(date_obj, datetime.max.time(), tzinfo=timezone.utc)
+
+            start_ts = int(start_dt.timestamp())
+            end_ts = int(end_dt.timestamp())
+
+            print(f"Filtering between {start_ts} and {end_ts}")  # Debug
+
+            cursor.execute("""
+                SELECT * FROM sensor_readings
+                WHERE timestamp BETWEEN %s AND %s
+                ORDER BY timestamp DESC
+            """, (start_ts, end_ts))
+        else:
+            # Default: last 100 readings
+            cursor.execute("""
+                SELECT * FROM sensor_readings
+                ORDER BY timestamp DESC
+                LIMIT 100
+            """)
+
+        rows = cursor.fetchall()
+
+        if rows:
+            for r in rows:
+                ts = datetime.fromtimestamp(int(r['timestamp']), tz=timezone.utc)
+                history_entries.append({
+                    "type": "sensor",
+                    "title": "Sensor Log Recorded",
+                    "details": f"Temperature: {r['temperature']}°C • Moisture: {r['moisture_percent']}%",
+                    "timestamp": ts
+                })
+        else:
+            history_entries.append({
+                "type": "sensor",
+                "title": "No activity",
+                "details": f"No sensor data recorded for {selected_date or 'today'}.",
+                "timestamp": datetime.now(timezone.utc),
+            })
+
+    except Exception as e:
+        print("DB ERROR:", e)
+        flash("Error fetching sensor history.", "danger")
+
+    finally:
+        try:
+            cursor.close()
+            conn.close()
+        except:
+            pass
+
+    return render_template("history.html", history=history_entries, selected_date=selected_date)
+
+
 
 
 #------------PI CONTROL ROUTES------------

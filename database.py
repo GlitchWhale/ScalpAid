@@ -28,6 +28,7 @@ class SensorReading(Base):
     moisture_unit = Column(String(16), nullable=False, default="%")
     temperature_unit = Column(String(16), nullable=False, default="C")
     created_at = Column(DateTime, server_default=func.now())
+    timestamp = Column(Integer, nullable=True)
 
     def set_moisture(self, value: str):
         self.moisture_cipher = fernet.encrypt(value.encode()).decode()

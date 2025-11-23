@@ -10,8 +10,10 @@ DB_CONFIG = {
     "user": os.getenv("DB_USER", "root"),
     "password": os.getenv("DB_PASSWORD", ""),
     "database": os.getenv("DB_NAME", "scalpaid"),
-    "port": int(os.getenv("DB_PORT", 3306))  # optional, must be int
+    "port": int(os.getenv("DB_PORT", 3306)) # optional, must be int
+  
 }
+print("Using database:", DB_CONFIG)
 ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
 API_KEY = os.getenv("API_KEY")
 
