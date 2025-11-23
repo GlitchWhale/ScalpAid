@@ -24,7 +24,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-#-------pubnub config--------
+
 pnconfig = PNConfiguration()
 pnconfig.subscribe_key = "sub-c-965e4329-6565-4fba-bb02-05774be3a3c3"
 pnconfig.publish_key = "pub-c-72867b34-4207-47de-a982-c35d4dbf14a8"
@@ -32,7 +32,7 @@ pnconfig.uuid = "flask-server"
 
 pubnub = PubNub(pnconfig)
 
-#-----pubnub listener------
+
 class ScalpListener(SubscribeCallback):
     def message(self, pubnub, event):
         data = event.message
@@ -99,19 +99,15 @@ def start_pubnub_listener():
 threading.Thread(target=start_pubnub_listener, daemon=True).start()
 
 
-# -------------------------------------------------------
-# Flask Setup
-# -------------------------------------------------------
+
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
 
-# Initialize database tables
+
 init_db()
 
 
-# -------------------------------------------------------
-# Registration Page
-# -------------------------------------------------------
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -149,7 +145,7 @@ def login():
         email = request.form['email']
         password = request.form['password']
 
-        # Connect to MySQL
+     
         try:
             conn = mysql.connector.connect(**DB_CONFIG)
             cursor = conn.cursor(dictionary=True)
@@ -161,7 +157,7 @@ def login():
             conn.close()
 
             if user and check_password_hash(user['password'], password):
-                # Store user session
+              
                 session['user_id'] = user['id']
                 session['user_name'] = user['name']
 
@@ -175,9 +171,7 @@ def login():
     return render_template('login.html')
 
 
-# -------------------------------------------------------
-# API Key Check
-# -------------------------------------------------------
+
 def require_api_key():
     if request.headers.get("X-API-KEY") != API_KEY:
         abort(403, "Forbidden: Invalid API Key")
@@ -199,23 +193,14 @@ def logout():
     return redirect(url_for('login'))
 
 
-# -------------------------------------------------------
-# Home Route
-# -------------------------------------------------------
 
-
-# -------------------------------------------------------
-# SENSOR DATA DASHBOARD PAGE (NEW!)
-# -------------------------------------------------------
 @app.route('/sensor-data')
 def sensor_data():
     """Frontend page for viewing live sensor data."""
     return render_template('sensor_data.html')
 
 
-# -------------------------------------------------------
-# API: Receive Sensor Data from Raspberry Pi
-# -------------------------------------------------------
+
 @app.route("/api/sensors/data", methods=["POST"])
 def receive_sensor_data():
     """
@@ -223,12 +208,11 @@ def receive_sensor_data():
     store them, and publish via PubNub.
     """
 
-    # Check API key
+    
     token = request.headers.get("X-API-KEY")
     if token != API_KEY:
         return jsonify({"error": "Unauthorized"}), 401
 
-    # Validate JSON
     data = request.get_json()
     if not data:
         return jsonify({"error": "Missing JSON body"}), 400
@@ -240,7 +224,6 @@ def receive_sensor_data():
     if temperature is None or moisture is None:
         return jsonify({"error": "temperature and moisture required"}), 400
 
-    # Save to database
     db = SessionLocal()
     try:
         reading = SensorReading(
@@ -264,7 +247,6 @@ def receive_sensor_data():
     finally:
         db.close()
 
-    # Publish to PubNub (for live dashboard updates)
     publish_sensor_data({
         "device_id": device_id,
         "temperature": temperature,
@@ -326,7 +308,7 @@ def history():
             start_ts = int(start_dt.timestamp())
             end_ts = int(end_dt.timestamp())
 
-            print(f"Filtering between {start_ts} and {end_ts}")  # Debug
+            print(f"Filtering between {start_ts} and {end_ts}") 
 
             cursor.execute("""
                 SELECT * FROM sensor_readings
@@ -334,7 +316,6 @@ def history():
                 ORDER BY timestamp DESC
             """, (start_ts, end_ts))
         else:
-            # Default: last 100 readings
             cursor.execute("""
                 SELECT * FROM sensor_readings
                 ORDER BY timestamp DESC
@@ -376,7 +357,6 @@ def history():
 
 
 
-#------------PI CONTROL ROUTES------------
 @app.route("/pi")
 def pi_page():
     return render_template("pi.html")
@@ -394,11 +374,9 @@ def stop_pi():
 
 @app.route('/')
 def home():
-    # If logged in, skip home → dashboard
     if 'user_id' in session:
         return redirect(url_for('dashboard'))
 
-    # Check if any users exist in DB
     conn = mysql.connector.connect(**DB_CONFIG)
     cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) FROM users")
@@ -406,11 +384,9 @@ def home():
     cursor.close()
     conn.close()
 
-    # If users exist, skip home → go to login
     if count > 0:
         return redirect(url_for('login'))
 
-    # If no users exist → first-time user → show home page
     return render_template('home.html')
 
 @app.context_processor
@@ -424,9 +400,6 @@ def inject_user_state():
 
     return {"users_exist": count > 0}
 
-# -------------------------------------------------------
-# Run Server
-# -------------------------------------------------------
 
 
 if __name__ == '__main__':

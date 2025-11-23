@@ -4,7 +4,7 @@
 {% block content %}
 <div class="max-w-5xl mx-auto py-10 space-y-10">
 
-    <!-- HEADER -->
+   
     <div>
         <h1 class="text-3xl font-bold text-sage-dark">ScalpAid Dashboard</h1>
         <p class="text-beige-dark">Live sensor monitoring + device control</p>
@@ -25,7 +25,7 @@
         </a>
     </div>
 
-    <!-- LIVE SENSOR CARDS -->
+   
     <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
 
         <div class="bg-cream p-5 rounded-xl shadow border border-beige">
@@ -59,19 +59,19 @@
         </div>
     </div>
 
-    <!-- GRAPH -->
+ 
     <div class="bg-white p-6 rounded-xl shadow border border-beige">
         <h2 class="text-xl font-semibold text-sage-dark mb-4">Live Sensor Graph</h2>
         <canvas id="sensorChart" height="120"></canvas>
     </div>
 </div>
 
-<!-- PubNub -->
+
 <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    // ----- PUBNUB CONFIG -----
+    
     const pubnub = new PubNub({
         subscribeKey: "sub-c-965e4329-6565-4fba-bb02-05774be3a3c3",
         uuid: "dashboard-client"
@@ -79,7 +79,7 @@
 
     pubnub.subscribe({ channels: ["scalp_data"] });
 
-    // ----- CHART SETUP -----
+  
     const ctx = document.getElementById('sensorChart').getContext('2d');
 
     const chart = new Chart(ctx, {
@@ -112,12 +112,12 @@
         }
     });
 
-    // ----- REAL-TIME UPDATES -----
+  
     pubnub.addListener({
         message: function (event) {
             const d = event.message;
 
-            // Update text cards
+         
             document.getElementById("temp").textContent = d.temperature?.toFixed(2) + " °C";
             document.getElementById("moist").textContent = d.moisture_percent?.toFixed(1) + "%";
             document.getElementById("volt").textContent = d.moisture_voltage?.toFixed(3) + " V";
@@ -127,13 +127,13 @@
             const ts = new Date(d.timestamp * 1000);
             document.getElementById("updated").textContent = ts.toLocaleTimeString();
 
-            // Update chart
+           
             const t = ts.toLocaleTimeString();
             chart.data.labels.push(t);
             chart.data.datasets[0].data.push(d.temperature);
             chart.data.datasets[1].data.push(d.moisture_percent);
 
-            // Keep only latest 20 points
+          
             if (chart.data.labels.length > 20) {
                 chart.data.labels.shift();
                 chart.data.datasets.forEach(ds => ds.data.shift());
