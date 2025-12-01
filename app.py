@@ -46,6 +46,8 @@ class ScalpListener(SubscribeCallback):
         moisture_percent = data.get("moisture_percent")
         timestamp = data.get("timestamp")
 
+        user_id = data.get("user_id", None)
+
         try:
             conn = mysql.connector.connect(
                 host=DB_CONFIG["host"],
@@ -65,9 +67,10 @@ class ScalpListener(SubscribeCallback):
                     moisture_raw,
                     moisture_voltage,
                     moisture_percent,
-                    timestamp
+                    timestamp,
+                    user_id
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """, (
                 device,
                 temperature,
@@ -75,7 +78,8 @@ class ScalpListener(SubscribeCallback):
                 moisture_raw,
                 moisture_voltage,
                 moisture_percent,
-                timestamp
+                timestamp,
+                user_id
             ))
 
             conn.commit()
@@ -237,6 +241,8 @@ def receive_sensor_data():
     temperature = data.get("temperature")
     moisture = data.get("moisture")
 
+    user_id = data.get("user_id")
+
     if temperature is None or moisture is None:
         return jsonify({"error": "temperature and moisture required"}), 400
 
@@ -245,6 +251,7 @@ def receive_sensor_data():
     try:
         reading = SensorReading(
             device_id=device_id,
+            user_id=user_id,  
             moisture_cipher="",
             temperature_cipher=""
         )
@@ -310,6 +317,7 @@ def history():
         flash("Please log in first.", "warning")
         return redirect(url_for('login'))
 
+    user_id = session['user_id'] 
     selected_date = request.args.get('date')
     history_entries = []
 
@@ -330,16 +338,17 @@ def history():
 
             cursor.execute("""
                 SELECT * FROM sensor_readings
-                WHERE timestamp BETWEEN %s AND %s
+                WHERE user_id = %s AND timestamp BETWEEN %s AND %s
                 ORDER BY timestamp DESC
-            """, (start_ts, end_ts))
+            """, (user_id, start_ts, end_ts))
         else:
             # Default: last 100 readings
             cursor.execute("""
                 SELECT * FROM sensor_readings
+                WHERE user_id = %s
                 ORDER BY timestamp DESC
                 LIMIT 100
-            """)
+            """, (user_id,))
 
         rows = cursor.fetchall()
 
