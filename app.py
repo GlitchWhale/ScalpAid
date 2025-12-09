@@ -270,13 +270,66 @@ def profile():
     return render_template('profile.html', user=user)
 
 
+from ai_utils import get_insights_page_ai
+# ... already imported datetime, timezone ...
+
+
 @app.route('/insights')
 def insights():
     if 'user_id' not in session:
         flash("Please log in first.", "warning")
         return redirect(url_for('login'))
 
-    return render_template('insights.html')
+    # Get last 7 days of readings from sensor_readings table
+    readings_last_7_days = []
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor(dictionary=True)
+
+        seven_days_ago_ts = int((datetime.now(timezone.utc) - timedelta(days=7)).timestamp())
+
+        cursor.execute("""
+            SELECT temperature, moisture_percent, timestamp
+            FROM sensor_readings
+            WHERE timestamp >= %s
+            ORDER BY timestamp DESC
+        """, (seven_days_ago_ts,))
+
+        rows = cursor.fetchall()
+        for r in rows:
+            readings_last_7_days.append({
+                "temperature": r["temperature"],
+                "moisture_percent": r["moisture_percent"],
+                "timestamp": datetime.fromtimestamp(int(r["timestamp"]), tz=timezone.utc),
+            })
+
+    except Exception as e:
+        print("DB ERROR insights:", e)
+        flash("Error fetching insights data.", "danger")
+
+    finally:
+        try:
+            cursor.close()
+            conn.close()
+        except:
+            pass
+
+    # Get user for context
+    db = SessionLocal()
+    user = db.query(User).filter(User.id == session['user_id']).first()
+    db.close()
+
+    ai_insights_text = None
+    try:
+        ai_insights_text = get_insights_page_ai(readings_last_7_days, user=user)
+    except Exception as e:
+        print("[AI ERROR insights]", e)
+
+    return render_template(
+        "insights.html",
+        ai_insights=ai_insights_text,
+    )
+
 
 
 from datetime import datetime, timedelta
@@ -285,6 +338,10 @@ from datetime import datetime, timedelta
 import pytz
 
 from datetime import datetime, timezone
+
+from ai_utils import get_history_ai_insights
+# ... existing imports above ...
+
 
 @app.route('/history', methods=['GET'])
 def history():
@@ -300,15 +357,12 @@ def history():
         cursor = conn.cursor(dictionary=True)
 
         if selected_date:
-            # Convert selected date to start/end timestamps in UTC
             date_obj = datetime.strptime(selected_date, "%Y-%m-%d").date()
             start_dt = datetime.combine(date_obj, datetime.min.time(), tzinfo=timezone.utc)
             end_dt = datetime.combine(date_obj, datetime.max.time(), tzinfo=timezone.utc)
 
             start_ts = int(start_dt.timestamp())
             end_ts = int(end_dt.timestamp())
-
-            print(f"Filtering between {start_ts} and {end_ts}") 
 
             cursor.execute("""
                 SELECT * FROM sensor_readings
@@ -352,7 +406,23 @@ def history():
         except:
             pass
 
-    return render_template("history.html", history=history_entries, selected_date=selected_date)
+    # Get current user for context
+    db = SessionLocal()
+    user = db.query(User).filter(User.id == session['user_id']).first()
+    db.close()
+
+    ai_history_insights = None
+    try:
+        ai_history_insights = get_history_ai_insights(history_entries, user=user)
+    except Exception as e:
+        print("[AI ERROR history]", e)
+
+    return render_template(
+        "history.html",
+        history=history_entries,
+        selected_date=selected_date,
+        ai_history_insights=ai_history_insights,
+    )
 
 
 
