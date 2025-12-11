@@ -24,7 +24,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-#-------pubnub config--------
+
 pnconfig = PNConfiguration()
 pnconfig.subscribe_key = "sub-c-965e4329-6565-4fba-bb02-05774be3a3c3"
 pnconfig.publish_key = "pub-c-72867b34-4207-47de-a982-c35d4dbf14a8"
@@ -32,7 +32,7 @@ pnconfig.uuid = "flask-server"
 
 pubnub = PubNub(pnconfig)
 
-#-----pubnub listener------
+
 class ScalpListener(SubscribeCallback):
     def message(self, pubnub, event):
         data = event.message
@@ -45,6 +45,8 @@ class ScalpListener(SubscribeCallback):
         moisture_voltage = data.get("moisture_voltage")
         moisture_percent = data.get("moisture_percent")
         timestamp = data.get("timestamp")
+
+        user_id = data.get("user_id", None)
 
         try:
             conn = mysql.connector.connect(
@@ -65,9 +67,10 @@ class ScalpListener(SubscribeCallback):
                     moisture_raw,
                     moisture_voltage,
                     moisture_percent,
-                    timestamp
+                    timestamp,
+                    user_id
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """, (
                 device,
                 temperature,
@@ -75,7 +78,8 @@ class ScalpListener(SubscribeCallback):
                 moisture_raw,
                 moisture_voltage,
                 moisture_percent,
-                timestamp
+                timestamp,
+                user_id
             ))
 
             conn.commit()
@@ -99,19 +103,15 @@ def start_pubnub_listener():
 threading.Thread(target=start_pubnub_listener, daemon=True).start()
 
 
-# -------------------------------------------------------
-# Flask Setup
-# -------------------------------------------------------
+
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
 
-# Initialize database tables
+
 init_db()
 
 
-# -------------------------------------------------------
-# Registration Page
-# -------------------------------------------------------
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -149,7 +149,7 @@ def login():
         email = request.form['email']
         password = request.form['password']
 
-        # Connect to MySQL
+     
         try:
             conn = mysql.connector.connect(**DB_CONFIG)
             cursor = conn.cursor(dictionary=True)
@@ -161,7 +161,7 @@ def login():
             conn.close()
 
             if user and check_password_hash(user['password'], password):
-                # Store user session
+              
                 session['user_id'] = user['id']
                 session['user_name'] = user['name']
 
@@ -175,9 +175,7 @@ def login():
     return render_template('login.html')
 
 
-# -------------------------------------------------------
-# API Key Check
-# -------------------------------------------------------
+
 def require_api_key():
     if request.headers.get("X-API-KEY") != API_KEY:
         abort(403, "Forbidden: Invalid API Key")
@@ -199,23 +197,14 @@ def logout():
     return redirect(url_for('login'))
 
 
-# -------------------------------------------------------
-# Home Route
-# -------------------------------------------------------
 
-
-# -------------------------------------------------------
-# SENSOR DATA DASHBOARD PAGE (NEW!)
-# -------------------------------------------------------
 @app.route('/sensor-data')
 def sensor_data():
     """Frontend page for viewing live sensor data."""
     return render_template('sensor_data.html')
 
 
-# -------------------------------------------------------
-# API: Receive Sensor Data from Raspberry Pi
-# -------------------------------------------------------
+
 @app.route("/api/sensors/data", methods=["POST"])
 def receive_sensor_data():
     """
@@ -223,12 +212,11 @@ def receive_sensor_data():
     store them, and publish via PubNub.
     """
 
-    # Check API key
+    
     token = request.headers.get("X-API-KEY")
     if token != API_KEY:
         return jsonify({"error": "Unauthorized"}), 401
 
-    # Validate JSON
     data = request.get_json()
     if not data:
         return jsonify({"error": "Missing JSON body"}), 400
@@ -237,14 +225,16 @@ def receive_sensor_data():
     temperature = data.get("temperature")
     moisture = data.get("moisture")
 
+    user_id = data.get("user_id")
+
     if temperature is None or moisture is None:
         return jsonify({"error": "temperature and moisture required"}), 400
 
-    # Save to database
     db = SessionLocal()
     try:
         reading = SensorReading(
             device_id=device_id,
+            user_id=user_id,  
             moisture_cipher="",
             temperature_cipher=""
         )
@@ -264,7 +254,6 @@ def receive_sensor_data():
     finally:
         db.close()
 
-    # Publish to PubNub (for live dashboard updates)
     publish_sensor_data({
         "device_id": device_id,
         "temperature": temperature,
@@ -288,13 +277,66 @@ def profile():
     return render_template('profile.html', user=user)
 
 
+from ai_utils import get_insights_page_ai
+# ... already imported datetime, timezone ...
+
+
 @app.route('/insights')
 def insights():
     if 'user_id' not in session:
         flash("Please log in first.", "warning")
         return redirect(url_for('login'))
 
-    return render_template('insights.html')
+    # Get last 7 days of readings from sensor_readings table
+    readings_last_7_days = []
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor(dictionary=True)
+
+        seven_days_ago_ts = int((datetime.now(timezone.utc) - timedelta(days=7)).timestamp())
+
+        cursor.execute("""
+            SELECT temperature, moisture_percent, timestamp
+            FROM sensor_readings
+            WHERE timestamp >= %s
+            ORDER BY timestamp DESC
+        """, (seven_days_ago_ts,))
+
+        rows = cursor.fetchall()
+        for r in rows:
+            readings_last_7_days.append({
+                "temperature": r["temperature"],
+                "moisture_percent": r["moisture_percent"],
+                "timestamp": datetime.fromtimestamp(int(r["timestamp"]), tz=timezone.utc),
+            })
+
+    except Exception as e:
+        print("DB ERROR insights:", e)
+        flash("Error fetching insights data.", "danger")
+
+    finally:
+        try:
+            cursor.close()
+            conn.close()
+        except:
+            pass
+
+    # Get user for context
+    db = SessionLocal()
+    user = db.query(User).filter(User.id == session['user_id']).first()
+    db.close()
+
+    ai_insights_text = None
+    try:
+        ai_insights_text = get_insights_page_ai(readings_last_7_days, user=user)
+    except Exception as e:
+        print("[AI ERROR insights]", e)
+
+    return render_template(
+        "insights.html",
+        ai_insights=ai_insights_text,
+    )
+
 
 
 from datetime import datetime, timedelta
@@ -304,12 +346,17 @@ import pytz
 
 from datetime import datetime, timezone
 
+from ai_utils import get_history_ai_insights
+# ... existing imports above ...
+
+
 @app.route('/history', methods=['GET'])
 def history():
     if 'user_id' not in session:
         flash("Please log in first.", "warning")
         return redirect(url_for('login'))
 
+    user_id = session['user_id'] 
     selected_date = request.args.get('date')
     history_entries = []
 
@@ -318,7 +365,6 @@ def history():
         cursor = conn.cursor(dictionary=True)
 
         if selected_date:
-            # Convert selected date to start/end timestamps in UTC
             date_obj = datetime.strptime(selected_date, "%Y-%m-%d").date()
             start_dt = datetime.combine(date_obj, datetime.min.time(), tzinfo=timezone.utc)
             end_dt = datetime.combine(date_obj, datetime.max.time(), tzinfo=timezone.utc)
@@ -326,20 +372,18 @@ def history():
             start_ts = int(start_dt.timestamp())
             end_ts = int(end_dt.timestamp())
 
-            print(f"Filtering between {start_ts} and {end_ts}")  # Debug
-
             cursor.execute("""
                 SELECT * FROM sensor_readings
-                WHERE timestamp BETWEEN %s AND %s
+                WHERE user_id = %s AND timestamp BETWEEN %s AND %s
                 ORDER BY timestamp DESC
-            """, (start_ts, end_ts))
+            """, (user_id, start_ts, end_ts))
         else:
-            # Default: last 100 readings
             cursor.execute("""
                 SELECT * FROM sensor_readings
+                WHERE user_id = %s
                 ORDER BY timestamp DESC
                 LIMIT 100
-            """)
+            """, (user_id,))
 
         rows = cursor.fetchall()
 
@@ -371,12 +415,27 @@ def history():
         except:
             pass
 
-    return render_template("history.html", history=history_entries, selected_date=selected_date)
+    # Get current user for context
+    db = SessionLocal()
+    user = db.query(User).filter(User.id == session['user_id']).first()
+    db.close()
+
+    ai_history_insights = None
+    try:
+        ai_history_insights = get_history_ai_insights(history_entries, user=user)
+    except Exception as e:
+        print("[AI ERROR history]", e)
+
+    return render_template(
+        "history.html",
+        history=history_entries,
+        selected_date=selected_date,
+        ai_history_insights=ai_history_insights,
+    )
 
 
 
 
-#------------PI CONTROL ROUTES------------
 @app.route("/pi")
 def pi_page():
     return render_template("pi.html")
@@ -394,11 +453,9 @@ def stop_pi():
 
 @app.route('/')
 def home():
-    # If logged in, skip home → dashboard
     if 'user_id' in session:
         return redirect(url_for('dashboard'))
 
-    # Check if any users exist in DB
     conn = mysql.connector.connect(**DB_CONFIG)
     cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) FROM users")
@@ -406,11 +463,9 @@ def home():
     cursor.close()
     conn.close()
 
-    # If users exist, skip home → go to login
     if count > 0:
         return redirect(url_for('login'))
 
-    # If no users exist → first-time user → show home page
     return render_template('home.html')
 
 @app.context_processor
@@ -424,9 +479,6 @@ def inject_user_state():
 
     return {"users_exist": count > 0}
 
-# -------------------------------------------------------
-# Run Server
-# -------------------------------------------------------
 
 
 if __name__ == '__main__':

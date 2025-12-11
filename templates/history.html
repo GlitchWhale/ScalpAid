@@ -3,8 +3,19 @@
 
 <div class="max-w-5xl mx-auto bg-white rounded-2xl shadow-md p-8 space-y-10">
     <h2 class="text-3xl font-bold text-sage-dark mb-6">History Overview</h2>
+{% if ai_history_insights %}
+<div class="mb-8 p-6 bg-cream border border-beige rounded-xl shadow-sm">
+    <h3 class="text-2xl font-semibold text-sage-dark mb-2">AI Insight</h3>
+    <p class="text-sm text-gray-500 mb-3">
+        Based on your recent sensor history:
+    </p>
+    <div class="prose max-w-none text-gray-800 whitespace-pre-line">
+        {{ ai_history_insights }}
+    </div>
+</div>
+{% endif %}
 
-    <!-- Filters -->
+ 
     <div class="flex flex-wrap gap-4 mb-6">
         <select class="p-3 rounded-xl border border-beige bg-cream text-sage-dark">
             <option value="">All Entries</option>
@@ -32,14 +43,14 @@
 </form>
 
 
-    <!-- Timeline Section -->
+   
     <div class="space-y-8">
 
         {% for entry in history %}
 
         <div class="flex gap-4 items-start">
 
-            <!-- Icon Bubble -->
+         
             <div class="
                 w-12 h-12 flex items-center justify-center rounded-full shadow-md
                 {% if entry.type == 'sensor' %}
@@ -51,19 +62,19 @@
                 {% endif %}
             ">
                 {% if entry.type == 'sensor' %}
-                    <!-- Sensor Icon -->
+                 
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2" />
                     </svg>
 
                 {% elif entry.type == 'diary' %}
-                    <!-- Diary Icon -->
+                 
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 19.5A2.5 2.5 0 006.5 22h11a2.5 2.5 0 002.5-2.5v-15A2.5 2.5 0 0017.5 2h-11A2.5 2.5 0 004 4.5v15z" />
                     </svg>
 
                 {% elif entry.type == 'product' %}
-                    <!-- Product Icon -->
+                  
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-3-3v6m-7.5 8.25h15A2.25 2.25 0 0021.75 20V4A2.25 2.25 0 0019.5 1.75h-15A2.25 2.25 0 002.25 4v16A2.25 2.25 0 004.5 22.25z" />
                     </svg>
@@ -71,7 +82,7 @@
             </div>
 
 
-            <!-- Card -->
+          
             <div class="bg-cream border border-beige rounded-xl p-5 shadow-sm flex-1 hover:shadow-md transition">
                 <h3 class="text-xl font-semibold text-sage-dark">{{ entry.title }}</h3>
                 <p class="text-gray-700 mt-1">{{ entry.details }}</p>
@@ -86,7 +97,7 @@
     </div>
 
 
-    <!-- Achievements Section -->
+  
     <div class="bg-white mt-10 p-6 rounded-xl border border-beige shadow-sm">
         <h3 class="text-2xl font-semibold text-sage-dark mb-4">Your Achievements</h3>
 

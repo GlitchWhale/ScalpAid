@@ -36,18 +36,25 @@
     </div>
 
     <div class="p-6 bg-cream rounded-xl border border-beige flex items-center gap-6 transition duration-300 hover:shadow-lg">
-        <div class="text-sage-dark text-4xl">💡</div>
-        <div class="flex-1">
-            <h3 class="text-xl font-semibold text-sage-dark mb-2">Recommendations</h3>
-            <p class="text-gray-600 mb-3">Smart suggestions generated from your scalp health trends.</p>
-            <div class="mt-2">
-                <p class="font-medium text-sage-dark">Routine Consistency</p>
-                <div class="w-full bg-beige rounded-full h-4 overflow-hidden">
-                    <div class="bg-sage h-full rounded-full" style="width: 82%"></div>
-                </div>
-                <p class="text-sm text-gray-600 mt-1">Great consistency!</p>
+    <div class="text-sage-dark text-4xl">💡</div>
+    <div class="flex-1">
+        <h3 class="text-xl font-semibold text-sage-dark mb-2">AI Recommendations</h3>
+        <p class="text-gray-600 mb-3">
+            Suggestions generated from your recent scalp sensor data and profile.
+        </p>
+
+        {% if ai_insights %}
+            <div class="prose max-w-none text-gray-800 whitespace-pre-line">
+                {{ ai_insights }}
             </div>
-        </div>
+        {% else %}
+            <p class="text-gray-500 text-sm">
+                I don’t have enough data yet to generate insights. Wear your device
+                for a few days and check back here.
+            </p>
+        {% endif %}
     </div>
+</div>
+
 </div>
 {% endblock %}

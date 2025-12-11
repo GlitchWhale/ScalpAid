@@ -28,12 +28,11 @@
 
 <body class="bg-cream min-h-screen flex flex-col">
 
-    <!-- Top Nav -->
-    <!-- Top Nav -->
+   
     <nav class="bg-sage text-white px-6 py-4 flex justify-between items-center shadow-md">
         <div class="font-bold text-2xl">ScalpAid</div>
 
-        <!-- Desktop Nav -->
+       
         <ul class="hidden md:flex gap-6 font-medium">
             <li><a href="{{ url_for('home') }}" class="hover:underline">Home</a></li>
 
@@ -53,13 +52,13 @@
             {% endif %}
         </ul>
 
-        <!-- Mobile Menu Button -->
+ 
         <button id="mobile-menu-btn" class="md:hidden p-2 bg-sage-dark rounded-lg">
             Menu
         </button>
     </nav>
 
-    <!-- Mobile Nav (Hidden by default) -->
+  
     <div id="mobile-nav"
         class="md:hidden hidden flex-col bg-sage text-white px-6 py-4 space-y-4 shadow-inner text-lg font-medium">
 
@@ -81,19 +80,16 @@
         {% endif %}
     </div>
 
-    <!-- Dashboard Shell -->
+   
     <div class="flex flex-1 flex-col md:flex-row">
 
-        <!-- Sidebar -->
-
-
-        <!-- Main Content -->
+      
         <main class="flex-1 p-6 space-y-6">
             {% block content %}
             {% endblock %}
         </main>
     </div>
-    <!-- GLOBAL PUBNUB SCRIPT (available on every page) -->
+    
     <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.0.min.js"></script>
 
     <script>
@@ -108,17 +104,17 @@
             message: function (event) {
                 const d = event.message;
 
-                // SAFELY update ANY element on ANY page
+                
                 function update(id, value) {
                     const el = document.getElementById(id);
                     if (el) el.textContent = value;
                 }
 
                 update("temp", d.temperature?.toFixed(2) + " °C");
-                update("temp-value", d.temperature?.toFixed(2));  // For chart page
+                update("temp-value", d.temperature?.toFixed(2));  
 
                 update("moist", d.moisture_percent?.toFixed(1) + "%");
-                update("moisture-value", d.moisture_percent?.toFixed(1)); // For chart page
+                update("moisture-value", d.moisture_percent?.toFixed(1));
 
                 update("volt", d.moisture_voltage?.toFixed(3) + " V");
                 update("raw", d.moisture_raw);
@@ -130,7 +126,7 @@
                     update("time", ts.toLocaleTimeString());
                 }
 
-                // Update chart if present
+                
                 if (window.sensorChart) {
                     sensorChart.data.labels.push(new Date().toLocaleTimeString());
                     sensorChart.data.datasets[0].data.push(d.temperature);
@@ -144,12 +140,12 @@
         const mobileBtn = document.getElementById("mobile-menu-btn");
         const mobileNav = document.getElementById("mobile-nav");
 
-        // Toggle menu
+       
         mobileBtn.addEventListener("click", () => {
             mobileNav.classList.toggle("hidden");
         });
 
-        // Auto-open menu on mobile devices
+      
         function autoOpenOnMobile() {
             const isMobile = window.innerWidth < 768;
             if (isMobile) {
@@ -157,10 +153,10 @@
             }
         }
 
-        // Run on load
+        
         document.addEventListener("DOMContentLoaded", autoOpenOnMobile);
 
-        // Also run when screen is resized
+      
         window.addEventListener("resize", autoOpenOnMobile);
     </script>
 
