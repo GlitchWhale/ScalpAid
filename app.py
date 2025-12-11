@@ -204,7 +204,6 @@ def sensor_data():
     return render_template('sensor_data.html')
 
 
-
 @app.route("/api/sensors/data", methods=["POST"])
 def receive_sensor_data():
     """
@@ -217,24 +216,25 @@ def receive_sensor_data():
     if token != API_KEY:
         return jsonify({"error": "Unauthorized"}), 401
 
+    # Validate JSON
     data = request.get_json()
     if not data:
         return jsonify({"error": "Missing JSON body"}), 400
 
     device_id = data.get("device_id", "unknown")
     temperature = data.get("temperature")
-    moisture = data.get("moisture")
-
+    moisture = data.get("moisture")          # this will also be used as moisture_percent
     user_id = data.get("user_id")
 
     if temperature is None or moisture is None:
         return jsonify({"error": "temperature and moisture required"}), 400
 
+    # --- Save to encrypted SQLAlchemy table ---
     db = SessionLocal()
     try:
         reading = SensorReading(
             device_id=device_id,
-            user_id=user_id,  
+            user_id=user_id,
             moisture_cipher="",
             temperature_cipher=""
         )
@@ -254,14 +254,37 @@ def receive_sensor_data():
     finally:
         db.close()
 
-    publish_sensor_data({
+    # --- ALERT LOGIC (backend side) ---
+    alert = None
+
+    # Use your thresholds (you can tweak these)
+    if temperature is not None and temperature > TEMP_HIGH_THRESHOLD:
+        alert = {
+            "type": "HIGH_TEMP",
+            "message": f"Warning: High temperature detected ({temperature:.1f}°C)",
+            "value": float(temperature)
+        }
+    elif moisture is not None and moisture < MOISTURE_LOW_THRESHOLD:
+        alert = {
+            "type": "LOW_MOISTURE",
+            "message": f"Scalp moisture is low ({moisture:.1f}%)",
+            "value": float(moisture)
+        }
+
+   
+    publish_payload = {
         "device_id": device_id,
         "temperature": temperature,
-        "moisture": moisture,
-        "timestamp": data.get("timestamp")
-    })
+      
+        "moisture_percent": moisture,
+        "timestamp": data.get("timestamp"),
+        "alert": alert
+    }
+
+    publish_sensor_data(publish_payload)
 
     return jsonify({"status": "success"}), 200
+
 
 
 @app.route('/profile')

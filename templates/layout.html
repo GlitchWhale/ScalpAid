@@ -28,11 +28,11 @@
 
 <body class="bg-cream min-h-screen flex flex-col">
 
-   
+    <!-- Top Nav -->
     <nav class="bg-sage text-white px-6 py-4 flex justify-between items-center shadow-md">
         <div class="font-bold text-2xl">ScalpAid</div>
 
-       
+        <!-- Desktop Nav -->
         <ul class="hidden md:flex gap-6 font-medium">
             <li><a href="{{ url_for('home') }}" class="hover:underline">Home</a></li>
 
@@ -52,13 +52,18 @@
             {% endif %}
         </ul>
 
- 
+        <!-- Mobile Menu Button -->
         <button id="mobile-menu-btn" class="md:hidden p-2 bg-sage-dark rounded-lg">
             Menu
         </button>
     </nav>
 
-  
+    <!-- GLOBAL ALERT BANNER (visible on all pages when triggered) -->
+    <div id="alert-box"
+        class="hidden fixed top-20 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-xl shadow-lg z-50 text-sm md:text-base font-semibold">
+    </div>
+
+    <!-- Mobile Nav -->
     <div id="mobile-nav"
         class="md:hidden hidden flex-col bg-sage text-white px-6 py-4 space-y-4 shadow-inner text-lg font-medium">
 
@@ -80,19 +85,21 @@
         {% endif %}
     </div>
 
-   
+    <!-- Main Shell -->
     <div class="flex flex-1 flex-col md:flex-row">
-
-      
         <main class="flex-1 p-6 space-y-6">
             {% block content %}
             {% endblock %}
         </main>
     </div>
-    
+
+    <!-- PubNub + Global Live Updates -->
     <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.0.min.js"></script>
 
     <script>
+        const TEMP_HIGH_THRESHOLD = 40;      // °C
+        const MOISTURE_LOW_THRESHOLD = 20;   // %
+
         const pubnub = new PubNub({
             subscribeKey: "sub-c-965e4329-6565-4fba-bb02-05774be3a3c3",
             uuid: "flask-client"
@@ -100,63 +107,139 @@
 
         pubnub.subscribe({ channels: ["scalp_data"] });
 
+        function updateText(id, value) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        }
+
+        function highlightElement(id, isAlert) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (isAlert) {
+                el.classList.add("text-red-600", "font-bold");
+            } else {
+                el.classList.remove("text-red-600", "font-bold");
+            }
+        }
+
+        function showGlobalAlert(message) {
+            const box = document.getElementById("alert-box");
+            if (!box) return;
+
+            box.textContent = message;
+            box.classList.remove("hidden");
+
+            // Hide after 5 seconds
+            setTimeout(() => {
+                box.classList.add("hidden");
+            }, 5000);
+        }
+
         pubnub.addListener({
             message: function (event) {
-                const d = event.message;
+                const d = event.message || {};
 
-                
-                function update(id, value) {
-                    const el = document.getElementById(id);
-                    if (el) el.textContent = value;
+                // Basic live value updates (any page that has these IDs)
+                if (typeof d.temperature === "number") {
+                    updateText("temp", d.temperature.toFixed(2) + " °C");
+                    updateText("temp-value", d.temperature.toFixed(2));
                 }
 
-                update("temp", d.temperature?.toFixed(2) + " °C");
-                update("temp-value", d.temperature?.toFixed(2));  
+                if (typeof d.moisture_percent === "number") {
+                    updateText("moist", d.moisture_percent.toFixed(1) + "%");
+                    updateText("moisture-value", d.moisture_percent.toFixed(1));
+                }
 
-                update("moist", d.moisture_percent?.toFixed(1) + "%");
-                update("moisture-value", d.moisture_percent?.toFixed(1));
+                if (typeof d.moisture_voltage === "number") {
+                    updateText("volt", d.moisture_voltage.toFixed(3) + " V");
+                }
 
-                update("volt", d.moisture_voltage?.toFixed(3) + " V");
-                update("raw", d.moisture_raw);
-                update("state", d.state);
+                updateText("raw", d.moisture_raw);
+                updateText("state", d.state);
 
                 if (d.timestamp) {
                     const ts = new Date(d.timestamp * 1000);
-                    update("updated", ts.toLocaleTimeString());
-                    update("time", ts.toLocaleTimeString());
+                    const timeStr = ts.toLocaleTimeString();
+                    updateText("updated", timeStr);
+                    updateText("time", timeStr);
                 }
 
-                
-                if (window.sensorChart) {
-                    sensorChart.data.labels.push(new Date().toLocaleTimeString());
-                    sensorChart.data.datasets[0].data.push(d.temperature);
-                    sensorChart.data.datasets[1].data.push(d.moisture_percent);
-                    sensorChart.update();
+                // ALERT LOGIC (front-end only)
+                let anyAlert = false;
+
+                if (typeof d.temperature === "number") {
+                    if (d.temperature > TEMP_HIGH_THRESHOLD) {
+                        const msg = `⚠️ High scalp temperature detected: ${d.temperature.toFixed(1)}°C`;
+                        showGlobalAlert(msg);
+                        highlightElement("temp", true);
+                        anyAlert = true;
+
+                        // If dashboard helper exists, call it too
+                        if (typeof showDashboardAlert === "function") {
+                            showDashboardAlert(msg);
+                        }
+                    } else {
+                        highlightElement("temp", false);
+                    }
+                }
+
+                if (typeof d.moisture_percent === "number") {
+                    if (d.moisture_percent < MOISTURE_LOW_THRESHOLD) {
+                        const msg = `⚠️ Scalp moisture is low: ${d.moisture_percent.toFixed(1)}%`;
+                        showGlobalAlert(msg);
+                        highlightElement("moist", true);
+                        anyAlert = true;
+
+                        if (typeof showDashboardAlert === "function") {
+                            showDashboardAlert(msg);
+                        }
+                    } else {
+                        highlightElement("moist", false);
+                    }
+                }
+
+                // Live chart support: if a page defines window.sensorChart, we push data into it
+                if (window.sensorChart &&
+                    typeof d.temperature === "number" &&
+                    typeof d.moisture_percent === "number") {
+
+                    const label = d.timestamp
+                        ? new Date(d.timestamp * 1000).toLocaleTimeString()
+                        : new Date().toLocaleTimeString();
+
+                    window.sensorChart.data.labels.push(label);
+                    window.sensorChart.data.datasets[0].data.push(d.temperature);
+                    window.sensorChart.data.datasets[1].data.push(d.moisture_percent);
+
+                    // Keep at most 20 points
+                    if (window.sensorChart.data.labels.length > 20) {
+                        window.sensorChart.data.labels.shift();
+                        window.sensorChart.data.datasets.forEach(ds => ds.data.shift());
+                    }
+
+                    window.sensorChart.update();
                 }
             }
         });
     </script>
+
+    <!-- Mobile nav script -->
     <script>
         const mobileBtn = document.getElementById("mobile-menu-btn");
         const mobileNav = document.getElementById("mobile-nav");
 
-       
         mobileBtn.addEventListener("click", () => {
             mobileNav.classList.toggle("hidden");
         });
 
-      
         function autoOpenOnMobile() {
             const isMobile = window.innerWidth < 768;
-            if (isMobile) {
-                mobileNav.classList.remove("hidden");
-            }
+            // Optional: auto-open on mobile load
+            // if (isMobile) mobileNav.classList.remove("hidden");
+            // else mobileNav.classList.add("hidden");
         }
 
-        
         document.addEventListener("DOMContentLoaded", autoOpenOnMobile);
-
-      
         window.addEventListener("resize", autoOpenOnMobile);
     </script>
 
