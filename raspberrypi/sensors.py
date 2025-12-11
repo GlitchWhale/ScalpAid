@@ -24,6 +24,7 @@ BASE_DIR = '/sys/bus/w1/devices/'
 DEVICE_FOLDER = glob.glob(BASE_DIR + '28*')[0]
 DEVICE_FILE = DEVICE_FOLDER + '/w1_slave'
 
+
 def read_temp_c():
     with open(DEVICE_FILE, 'r') as f:
         lines = f.readlines()
@@ -35,9 +36,10 @@ def read_temp_c():
 
     pos = lines[1].find('t=')
     if pos != -1:
-        temp_c = float(lines[1][pos+2:]) / 1000.0
+        temp_c = float(lines[1][pos + 2:]) / 1000.0
         return temp_c
     return None
+
 
 # moisture / ADS1115
 i2c = busio.I2C(board.SCL, board.SDA)
@@ -47,16 +49,19 @@ moisture_channel = AnalogIn(ads, 0)
 DRY_RAW = 17824
 WET_RAW = 5280
 
+
 def moisture_to_percent(raw):
     percent = (DRY_RAW - raw) / (DRY_RAW - WET_RAW)
     percent = max(0, min(percent, 1))
     return round(percent * 100, 1)
+
 
 def read_moisture():
     raw = moisture_channel.value
     voltage = moisture_channel.voltage
     percent = moisture_to_percent(raw)
     return raw, voltage, percent
+
 
 # PubNub setup
 pnconfig = PNConfiguration()
@@ -69,6 +74,7 @@ DATA_CHANNEL = "scalp_data"
 COMMAND_CHANNEL = "scalp_commands"
 
 start_reading = False
+
 
 class CommandListener(SubscribeCallback):
     def message(self, pubnub, event):
@@ -83,8 +89,10 @@ class CommandListener(SubscribeCallback):
             print("Received stop")
             start_reading = False
 
+
 pubnub.add_listener(CommandListener())
 pubnub.subscribe().channels(COMMAND_CHANNEL).execute()
+
 
 def publish(temp, state, moisture_raw, moisture_voltage, percent):
     message = {
@@ -97,24 +105,35 @@ def publish(temp, state, moisture_raw, moisture_voltage, percent):
         "timestamp": int(time.time())
     }
     try:
-        pubnub.publish().channel(DATA_CHANNEL).message(message).pn_async(lambda e, s: None)
+        pubnub.publish().channel(DATA_CHANNEL).message(message).pn_async(
+            lambda e, s: None
+        )
         print("sent to pubnub:", message)
     except Exception as e:
         print("pubnub error:", e)
 
-# thresholds
+
+# temperature thresholds
 WARN_ON = 29.5
 WARN_OFF = 29.2
 ALARM_ON = 30.2
 ALARM_OFF = 29.8
 
+# moisture thresholds (percent, low = too dry)
+MOISTURE_WARN_LOW = 30.0   # warn if <= 30%
+MOISTURE_ALARM_LOW = 20.0  # alarm if <= 20%
+
 state = "normal"
 last_beep_toggle = 0
 beep_interval = 0.25
 
+# delay before buzzer starts once in alarm (seconds)
+BUZZER_DELAY = 10.0
+alarm_start_time = None
+
 # how often to read sensors / publish
-SAMPLE_INTERVAL = 5.0   
-IDLE_INTERVAL = 1.0
+SAMPLE_INTERVAL = 5.0   # run every 5 seconds
+IDLE_INTERVAL = 1.0     # loop delay when not reading
 
 try:
     while True:
@@ -122,6 +141,7 @@ try:
         if not start_reading:
             GPIO.output(LED_PIN, GPIO.LOW)
             GPIO.output(BUZZER_PIN, GPIO.LOW)
+            alarm_start_time = None
             time.sleep(IDLE_INTERVAL)
             continue
 
@@ -132,6 +152,7 @@ try:
             continue
 
         moisture_raw, moisture_voltage, moisture_percent = read_moisture()
+
         print(
             f"Temp: {t:.2f} C | "
             f"Moisture: {moisture_percent}% | "
@@ -139,31 +160,51 @@ try:
             f"State={state}"
         )
 
-        # state logic
-        if state == "normal":
-            if t >= ALARM_ON:
-                state = "alarm"
-            elif t >= WARN_ON:
-                state = "warn"
+        # temperature state
+        if t >= ALARM_ON:
+            temp_state = "alarm"
+        elif t >= WARN_ON:
+            temp_state = "warn"
+        elif t <= WARN_OFF:
+            temp_state = "normal"
+        else:
+            temp_state = state  # small hysteresis zone
 
-        elif state == "warn":
-            if t >= ALARM_ON:
-                state = "alarm"
-            elif t <= WARN_OFF:
-                state = "normal"
+        # moisture state (only low moisture considered)
+        if moisture_percent <= MOISTURE_ALARM_LOW:
+            moist_state = "alarm"
+        elif moisture_percent <= MOISTURE_WARN_LOW:
+            moist_state = "warn"
+        else:
+            moist_state = "normal"
 
-        elif state == "alarm":
-            if t <= ALARM_OFF:
-                state = "warn" if t >= WARN_ON else "normal"
+        # overall state = worst of temp and moisture
+        if "alarm" in (temp_state, moist_state):
+            new_state = "alarm"
+        elif "warn" in (temp_state, moist_state):
+            new_state = "warn"
+        else:
+            new_state = "normal"
 
-        # output controls
+        # track when we entered alarm
+        if new_state == "alarm":
+            if state != "alarm":
+                alarm_start_time = time.time()
+        else:
+            alarm_start_time = None
+
+        state = new_state
+
+        # LED: on for warn + alarm, off for normal
         GPIO.output(LED_PIN, GPIO.HIGH if state in ("warn", "alarm") else GPIO.LOW)
 
-        if state == "alarm":
+        # Buzzer: only after BUZZER_DELAY seconds in alarm
+        if state == "alarm" and alarm_start_time is not None:
             now = time.time()
-            if now - last_beep_toggle >= beep_interval:
-                GPIO.output(BUZZER_PIN, not GPIO.input(BUZZER_PIN))
-                last_beep_toggle = now
+            if now - alarm_start_time >= BUZZER_DELAY:
+                if now - last_beep_toggle >= beep_interval:
+                    GPIO.output(BUZZER_PIN, not GPIO.input(BUZZER_PIN))
+                    last_beep_toggle = now
         else:
             GPIO.output(BUZZER_PIN, GPIO.LOW)
 
