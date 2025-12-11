@@ -31,6 +31,8 @@ pnconfig.publish_key = "pub-c-72867b34-4207-47de-a982-c35d4dbf14a8"
 pnconfig.uuid = "flask-server"
 
 pubnub = PubNub(pnconfig)
+TEMP_HIGH_THRESHOLD = 40      # TEST MODE
+MOISTURE_LOW_THRESHOLD = 20
 
 
 class ScalpListener(SubscribeCallback):

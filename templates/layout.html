@@ -58,7 +58,7 @@
         </button>
     </nav>
 
-    <!-- GLOBAL ALERT BANNER (visible on all pages when triggered) -->
+    <!-- 🔥 GLOBAL ALERT BANNER (used for sensor alerts) -->
     <div id="alert-box"
         class="hidden fixed top-20 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-xl shadow-lg z-50 text-sm md:text-base font-semibold">
     </div>
@@ -97,8 +97,8 @@
     <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.0.min.js"></script>
 
     <script>
-        const TEMP_HIGH_THRESHOLD = 40;      // °C
-        const MOISTURE_LOW_THRESHOLD = 20;   // %
+        const TEMP_HIGH_THRESHOLD = 23;   // For testing alerts instantly
+        const MOISTURE_LOW_THRESHOLD = 20;
 
         const pubnub = new PubNub({
             subscribeKey: "sub-c-965e4329-6565-4fba-bb02-05774be3a3c3",
@@ -129,7 +129,6 @@
             box.textContent = message;
             box.classList.remove("hidden");
 
-            // Hide after 5 seconds
             setTimeout(() => {
                 box.classList.add("hidden");
             }, 5000);
@@ -139,45 +138,25 @@
             message: function (event) {
                 const d = event.message || {};
 
-                // Basic live value updates (any page that has these IDs)
+                // LIVE VALUE UPDATES
                 if (typeof d.temperature === "number") {
                     updateText("temp", d.temperature.toFixed(2) + " °C");
-                    updateText("temp-value", d.temperature.toFixed(2));
                 }
-
                 if (typeof d.moisture_percent === "number") {
                     updateText("moist", d.moisture_percent.toFixed(1) + "%");
-                    updateText("moisture-value", d.moisture_percent.toFixed(1));
                 }
-
-                if (typeof d.moisture_voltage === "number") {
-                    updateText("volt", d.moisture_voltage.toFixed(3) + " V");
-                }
-
-                updateText("raw", d.moisture_raw);
-                updateText("state", d.state);
 
                 if (d.timestamp) {
                     const ts = new Date(d.timestamp * 1000);
-                    const timeStr = ts.toLocaleTimeString();
-                    updateText("updated", timeStr);
-                    updateText("time", timeStr);
+                    updateText("updated", ts.toLocaleTimeString());
                 }
 
-                // ALERT LOGIC (front-end only)
-                let anyAlert = false;
-
+                // 🌡️ ALERTS
                 if (typeof d.temperature === "number") {
                     if (d.temperature > TEMP_HIGH_THRESHOLD) {
                         const msg = `⚠️ High scalp temperature detected: ${d.temperature.toFixed(1)}°C`;
                         showGlobalAlert(msg);
                         highlightElement("temp", true);
-                        anyAlert = true;
-
-                        // If dashboard helper exists, call it too
-                        if (typeof showDashboardAlert === "function") {
-                            showDashboardAlert(msg);
-                        }
                     } else {
                         highlightElement("temp", false);
                     }
@@ -188,36 +167,9 @@
                         const msg = `⚠️ Scalp moisture is low: ${d.moisture_percent.toFixed(1)}%`;
                         showGlobalAlert(msg);
                         highlightElement("moist", true);
-                        anyAlert = true;
-
-                        if (typeof showDashboardAlert === "function") {
-                            showDashboardAlert(msg);
-                        }
                     } else {
                         highlightElement("moist", false);
                     }
-                }
-
-                // Live chart support: if a page defines window.sensorChart, we push data into it
-                if (window.sensorChart &&
-                    typeof d.temperature === "number" &&
-                    typeof d.moisture_percent === "number") {
-
-                    const label = d.timestamp
-                        ? new Date(d.timestamp * 1000).toLocaleTimeString()
-                        : new Date().toLocaleTimeString();
-
-                    window.sensorChart.data.labels.push(label);
-                    window.sensorChart.data.datasets[0].data.push(d.temperature);
-                    window.sensorChart.data.datasets[1].data.push(d.moisture_percent);
-
-                    // Keep at most 20 points
-                    if (window.sensorChart.data.labels.length > 20) {
-                        window.sensorChart.data.labels.shift();
-                        window.sensorChart.data.datasets.forEach(ds => ds.data.shift());
-                    }
-
-                    window.sensorChart.update();
                 }
             }
         });
@@ -231,16 +183,6 @@
         mobileBtn.addEventListener("click", () => {
             mobileNav.classList.toggle("hidden");
         });
-
-        function autoOpenOnMobile() {
-            const isMobile = window.innerWidth < 768;
-            // Optional: auto-open on mobile load
-            // if (isMobile) mobileNav.classList.remove("hidden");
-            // else mobileNav.classList.add("hidden");
-        }
-
-        document.addEventListener("DOMContentLoaded", autoOpenOnMobile);
-        window.addEventListener("resize", autoOpenOnMobile);
     </script>
 
 </body>
