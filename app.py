@@ -415,6 +415,9 @@ def history():
                 except:
                     temperature = "N/A"
 
+                    if temperature == "N/A" or moisture == "N/A":
+                        continue
+
                 # decrypt moisture
                 try:
                     moisture = fernet.decrypt(r['moisture_cipher'].encode()).decode()
