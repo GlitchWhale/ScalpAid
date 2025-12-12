@@ -388,13 +388,18 @@ def history():
 
             cursor.execute("""
                 SELECT * FROM sensor_readings
+                WHERE temperature_cipher IS NOT NULL 
+                AND moisture_cipher IS NOT NULL
+                AND timestamp BETWEEN %s AND %s
                 ORDER BY timestamp DESC
                 LIMIT 100
-            """)
+            """, (start_ts, end_ts))
         else:
             print(f"DEBUG: Querying all records for user {user_id}")
             cursor.execute("""
                 SELECT * FROM sensor_readings
+                WHERE temperature_cipher IS NOT NULL 
+                AND moisture_cipher IS NOT NULL
                 ORDER BY timestamp DESC
                 LIMIT 100
             """)
