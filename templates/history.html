@@ -86,9 +86,10 @@
             <div class="bg-cream border border-beige rounded-xl p-5 shadow-sm flex-1 hover:shadow-md transition">
                 <h3 class="text-xl font-semibold text-sage-dark">{{ entry.title }}</h3>
                 <p class="text-gray-700 mt-1">{{ entry.details }}</p>
-                <p class="text-gray-500 text-sm mt-2">
-                    {{ entry.timestamp.strftime("%b %d, %Y — %I:%M %p") }}
-                </p>
+<p class="text-gray-500 text-sm mt-2">
+    {{ entry.timestamp.strftime("%b %d, %Y") }}
+</p>
+
             </div>
         </div>
 

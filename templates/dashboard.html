@@ -10,7 +10,7 @@
         <p class="text-sm text-gray-600">Live sensor monitoring &amp; device control</p>
     </div>
 
-    <!-- DASHBOARD ALERT BANNER (per-page, driven by layout.js) -->
+    <!-- DASHBOARD ALERT BANNER -->
     <div id="dashboard-alert"
          class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl text-sm md:text-base font-medium">
     </div>
@@ -30,8 +30,8 @@
         </a>
     </div>
 
-    <!-- Live Metric Cards -->
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+    <!-- Live Metric Cards (ONLY TEMP + MOISTURE) -->
+    <div class="grid grid-cols-2 md:grid-cols-2 gap-6">
 
         <div class="bg-cream p-5 rounded-xl shadow border border-beige">
             <h3 class="text-sage-dark font-semibold">Temperature</h3>
@@ -43,25 +43,6 @@
             <p id="moist" class="text-3xl font-bold">--</p>
         </div>
 
-        <div class="bg-cream p-5 rounded-xl shadow border border-beige">
-            <h3 class="text-sage-dark font-semibold">Voltage</h3>
-            <p id="volt" class="text-3xl font-bold">--</p>
-        </div>
-
-        <div class="bg-cream p-5 rounded-xl shadow border border-beige">
-            <h3 class="text-sage-dark font-semibold">Raw Moisture</h3>
-            <p id="raw" class="text-3xl font-bold">--</p>
-        </div>
-
-        <div class="bg-cream p-5 rounded-xl shadow border border-beige">
-            <h3 class="text-sage-dark font-semibold">State</h3>
-            <p id="state" class="text-2xl font-semibold">--</p>
-        </div>
-
-        <div class="bg-cream p-5 rounded-xl shadow border border-beige">
-            <h3 class="text-sage-dark font-semibold">Last Updated</h3>
-            <p id="updated" class="text-xl">--</p>
-        </div>
     </div>
 
     <!-- Live Chart -->
@@ -71,11 +52,11 @@
     </div>
 </div>
 
-<!-- Chart.js only (PubNub comes from layout.html) -->
+<!-- Chart.js only (PubNub listener is in layout.html) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    // Set up the chart and expose it globally as window.sensorChart
+    // Create global chart object
     const ctx = document.getElementById('sensorChart').getContext('2d');
 
     window.sensorChart = new Chart(ctx, {
@@ -100,7 +81,7 @@
         options: {
             plugins: {
                 legend: {
-                    labels: { color: "#4b5563" }  // slate-ish text
+                    labels: { color: "#4b5563" }
                 }
             },
             scales: {
@@ -116,7 +97,7 @@
         }
     });
 
-    // Helper called from layout's PubNub listener when alerts trigger
+    // Helper used by PubNub alert handling
     function showDashboardAlert(msg) {
         const box = document.getElementById("dashboard-alert");
         if (!box) return;
@@ -124,7 +105,6 @@
         box.textContent = msg;
         box.classList.remove("hidden");
 
-        // Auto-hide after 6 seconds
         setTimeout(() => {
             box.classList.add("hidden");
         }, 6000);

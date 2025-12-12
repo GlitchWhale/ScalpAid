@@ -52,20 +52,18 @@
             {% endif %}
         </ul>
 
-        <!-- Mobile Menu Button -->
-        <button id="mobile-menu-btn" class="md:hidden p-2 bg-sage-dark rounded-lg">
-            Menu
-        </button>
+        <!-- Mobile Menu -->
+        <button id="mobile-menu-btn" class="md:hidden p-2 bg-sage-dark rounded-lg">Menu</button>
     </nav>
 
-    <!-- 🔥 GLOBAL ALERT BANNER (used for sensor alerts) -->
+    <!-- 🔥 GLOBAL ALERT -->
     <div id="alert-box"
-        class="hidden fixed top-20 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-xl shadow-lg z-50 text-sm md:text-base font-semibold">
+         class="hidden fixed top-20 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-xl shadow-lg z-50 text-sm md:text-base font-semibold">
     </div>
 
     <!-- Mobile Nav -->
     <div id="mobile-nav"
-        class="md:hidden hidden flex-col bg-sage text-white px-6 py-4 space-y-4 shadow-inner text-lg font-medium">
+         class="md:hidden hidden flex-col bg-sage text-white px-6 py-4 space-y-4 shadow-inner text-lg font-medium">
 
         <a href="{{ url_for('home') }}" class="block">Home</a>
 
@@ -85,19 +83,18 @@
         {% endif %}
     </div>
 
-    <!-- Main Shell -->
+    <!-- Main -->
     <div class="flex flex-1 flex-col md:flex-row">
         <main class="flex-1 p-6 space-y-6">
-            {% block content %}
-            {% endblock %}
+            {% block content %}{% endblock %}
         </main>
     </div>
 
-    <!-- PubNub + Global Live Updates -->
+    <!-- PubNub -->
     <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.0.min.js"></script>
 
     <script>
-        const TEMP_HIGH_THRESHOLD = 23;   // For testing alerts instantly
+        const TEMP_HIGH_THRESHOLD = 23;
         const MOISTURE_LOW_THRESHOLD = 20;
 
         const pubnub = new PubNub({
@@ -115,76 +112,84 @@
         function highlightElement(id, isAlert) {
             const el = document.getElementById(id);
             if (!el) return;
-            if (isAlert) {
-                el.classList.add("text-red-600", "font-bold");
-            } else {
-                el.classList.remove("text-red-600", "font-bold");
-            }
+            el.classList.toggle("text-red-600", isAlert);
+            el.classList.toggle("font-bold", isAlert);
         }
 
-        function showGlobalAlert(message) {
+        function showGlobalAlert(msg) {
             const box = document.getElementById("alert-box");
-            if (!box) return;
-
-            box.textContent = message;
+            box.textContent = msg;
             box.classList.remove("hidden");
-
-            setTimeout(() => {
-                box.classList.add("hidden");
-            }, 5000);
+            setTimeout(() => box.classList.add("hidden"), 5000);
         }
 
         pubnub.addListener({
             message: function (event) {
                 const d = event.message || {};
 
-                // LIVE VALUE UPDATES
-                if (typeof d.temperature === "number") {
+                if (typeof d.temperature === "number")
                     updateText("temp", d.temperature.toFixed(2) + " °C");
-                }
-                if (typeof d.moisture_percent === "number") {
+
+                if (typeof d.moisture_percent === "number")
                     updateText("moist", d.moisture_percent.toFixed(1) + "%");
-                }
 
                 if (d.timestamp) {
-                    const ts = new Date(d.timestamp * 1000);
-                    updateText("updated", ts.toLocaleTimeString());
+                    updateText("updated",
+                        new Date(d.timestamp * 1000).toLocaleTimeString()
+                    );
                 }
 
-                // 🌡️ ALERTS
-                if (typeof d.temperature === "number") {
-                    if (d.temperature > TEMP_HIGH_THRESHOLD) {
-                        const msg = `⚠️ High scalp temperature detected: ${d.temperature.toFixed(1)}°C`;
-                        showGlobalAlert(msg);
-                        highlightElement("temp", true);
-                    } else {
-                        highlightElement("temp", false);
-                    }
+                // Alerts
+                if (typeof d.temperature === "number" && d.temperature > TEMP_HIGH_THRESHOLD) {
+                    showGlobalAlert(`⚠️ High temperature: ${d.temperature.toFixed(1)}°C`);
+                    highlightElement("temp", true);
+                } else {
+                    highlightElement("temp", false);
                 }
 
-                if (typeof d.moisture_percent === "number") {
-                    if (d.moisture_percent < MOISTURE_LOW_THRESHOLD) {
-                        const msg = `⚠️ Scalp moisture is low: ${d.moisture_percent.toFixed(1)}%`;
-                        showGlobalAlert(msg);
-                        highlightElement("moist", true);
-                    } else {
-                        highlightElement("moist", false);
+                if (typeof d.moisture_percent === "number" && d.moisture_percent < MOISTURE_LOW_THRESHOLD) {
+                    showGlobalAlert(`⚠️ Moisture low: ${d.moisture_percent.toFixed(1)}%`);
+                    highlightElement("moist", true);
+                } else {
+                    highlightElement("moist", false);
+                }
+
+                /*  
+                    ✅ FIXED LIVE CHART UPDATE  
+                    Safely update chart WHEN it exists 
+                */
+                if (
+                    typeof window.sensorChart !== "undefined" &&
+                    window.sensorChart.data &&
+                    typeof d.temperature === "number" &&
+                    typeof d.moisture_percent === "number"
+                ) {
+                    const label = d.timestamp
+                        ? new Date(d.timestamp * 1000).toLocaleTimeString()
+                        : new Date().toLocaleTimeString();
+
+                    window.sensorChart.data.labels.push(label);
+                    window.sensorChart.data.datasets[0].data.push(d.temperature);
+                    window.sensorChart.data.datasets[1].data.push(d.moisture_percent);
+
+                    if (window.sensorChart.data.labels.length > 20) {
+                        window.sensorChart.data.labels.shift();
+                        window.sensorChart.data.datasets.forEach(ds => ds.data.shift());
                     }
+
+                    window.sensorChart.update();
                 }
             }
         });
     </script>
 
-    <!-- Mobile nav script -->
+    <!-- Mobile Nav -->
     <script>
-        const mobileBtn = document.getElementById("mobile-menu-btn");
-        const mobileNav = document.getElementById("mobile-nav");
-
-        mobileBtn.addEventListener("click", () => {
-            mobileNav.classList.toggle("hidden");
-        });
+        document.getElementById("mobile-menu-btn")
+            .addEventListener("click", () =>
+                document.getElementById("mobile-nav").classList.toggle("hidden")
+            );
     </script>
 
 </body>
-
 </html>

@@ -368,9 +368,11 @@ def history():
         flash("Please log in first.", "warning")
         return redirect(url_for('login'))
 
-    user_id = session['user_id'] 
+    user_id = session['user_id']
     selected_date = request.args.get('date')
     history_entries = []
+
+    LOCAL_TZ = pytz.timezone("Europe/Dublin")  # ← CHANGE THIS IF NEEDED
 
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
@@ -378,69 +380,60 @@ def history():
 
         if selected_date:
             date_obj = datetime.strptime(selected_date, "%Y-%m-%d").date()
-            start_dt = datetime.combine(date_obj, datetime.min.time(), tzinfo=timezone.utc)
-            end_dt = datetime.combine(date_obj, datetime.max.time(), tzinfo=timezone.utc)
 
-            start_ts = int(start_dt.timestamp())
-            end_ts = int(end_dt.timestamp())
+            # Start and end of selected day IN LOCAL TIME
+            start_local = LOCAL_TZ.localize(datetime.combine(date_obj, datetime.min.time()))
+            end_local = LOCAL_TZ.localize(datetime.combine(date_obj, datetime.max.time()))
 
-            print(f"DEBUG: Querying between {start_ts} and {end_ts}")
+            # Convert to UTC timestamps for DB filtering
+            start_ts = int(start_local.astimezone(timezone.utc).timestamp())
+            end_ts = int(end_local.astimezone(timezone.utc).timestamp())
 
             cursor.execute("""
                 SELECT * FROM sensor_readings
-                WHERE temperature_cipher IS NOT NULL 
-                AND moisture_cipher IS NOT NULL
-                AND timestamp BETWEEN %s AND %s
+                WHERE timestamp BETWEEN %s AND %s
                 ORDER BY timestamp DESC
-                LIMIT 100
             """, (start_ts, end_ts))
+
         else:
-            print(f"DEBUG: Querying all records for user {user_id}")
             cursor.execute("""
                 SELECT * FROM sensor_readings
-                WHERE temperature_cipher IS NOT NULL 
-                AND moisture_cipher IS NOT NULL
                 ORDER BY timestamp DESC
                 LIMIT 100
             """)
 
         rows = cursor.fetchall()
-        print(f"DEBUG: Found {len(rows)} rows")
 
         if rows:
             for r in rows:
-                print(f"DEBUG: Processing row: {r}")
-                ts = datetime.fromtimestamp(int(r['timestamp']), tz=timezone.utc)
+                ts_utc = datetime.fromtimestamp(int(r["timestamp"]), tz=timezone.utc)
+                ts_local = ts_utc.astimezone(LOCAL_TZ)   # ← FIX: convert to Ireland time
 
                 # decrypt temperature
                 try:
-                    temperature = fernet.decrypt(
-                        r['temperature_cipher'].encode()
-                    ).decode()
-                except Exception:
+                    temperature = fernet.decrypt(r['temperature_cipher'].encode()).decode()
+                except:
                     temperature = "N/A"
 
                 # decrypt moisture
                 try:
-                    moisture = fernet.decrypt(
-                        r['moisture_cipher'].encode()
-                    ).decode()
-                except Exception:
+                    moisture = fernet.decrypt(r['moisture_cipher'].encode()).decode()
+                except:
                     moisture = "N/A"
 
                 history_entries.append({
                     "type": "sensor",
                     "title": "Sensor Log Recorded",
                     "details": f"Temperature: {temperature}°C • Moisture: {moisture}%",
-                    "timestamp": ts
+                    "timestamp": ts_local   # ← FIX: show local time
                 })
 
         else:
             history_entries.append({
                 "type": "sensor",
                 "title": "No activity",
-                "details": f"No sensor data recorded for {selected_date or 'today'}.",
-                "timestamp": datetime.now(timezone.utc),
+                "details": f"No sensor data recorded.",
+                "timestamp": datetime.now(LOCAL_TZ),
             })
 
     except Exception as e:
@@ -448,17 +441,17 @@ def history():
         flash("Error fetching sensor history.", "danger")
 
     finally:
-        try:
-            cursor.close()
-            conn.close()
-        except:
-            pass
+        try: cursor.close()
+        except: pass
+        try: conn.close()
+        except: pass
 
-    # Get current user for context
+    # User context
     db = SessionLocal()
     user = db.query(User).filter(User.id == session['user_id']).first()
     db.close()
 
+    # AI part
     ai_history_insights = None
     try:
         ai_history_insights = get_history_ai_insights(history_entries, user=user)
