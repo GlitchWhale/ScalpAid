@@ -2,7 +2,7 @@ from flask import (
     Flask, flash, redirect, render_template,
     request, jsonify, abort, url_for, session
 )
-from database import SessionLocal, SensorReading, User, init_db
+from database import SessionLocal, User
 from config import API_KEY, DB_CONFIG, SECRET_KEY
 from werkzeug.security import generate_password_hash, check_password_hash
 import mysql.connector
@@ -13,14 +13,13 @@ from pubnub.pubnub import PubNub
 from pubnub.pnconfiguration import PNConfiguration
 from pubnub.callbacks import SubscribeCallback
 
-from flask import request
 from datetime import datetime, timedelta
 
-from flask import Flask, flash, redirect, render_template, request, session, url_for
 from datetime import datetime
 from sqlalchemy import func
-from database import SessionLocal, SensorReading
 from dotenv import load_dotenv
+from config import fernet
+
 load_dotenv()
 
 
@@ -48,7 +47,7 @@ class ScalpListener(SubscribeCallback):
         moisture_percent = data.get("moisture_percent")
         timestamp = data.get("timestamp")
 
-        user_id = data.get("user_id", None)
+        user_id = data.get("user_id", 1)
 
         try:
             conn = mysql.connector.connect(
@@ -63,23 +62,17 @@ class ScalpListener(SubscribeCallback):
 
             cursor.execute("""
                 INSERT INTO sensor_readings (
-                    device,
-                    temperature,
-                    state,
-                    moisture_raw,
-                    moisture_voltage,
-                    moisture_percent,
+                    device_id,
+                    temperature_cipher,
+                    moisture_cipher,
                     timestamp,
                     user_id
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s)
             """, (
                 device,
-                temperature,
-                state,
-                moisture_raw,
-                moisture_voltage,
-                moisture_percent,
+                fernet.encrypt(str(temperature).encode()).decode(),
+                fernet.encrypt(str(moisture_percent).encode()).decode(),
                 timestamp,
                 user_id
             ))
@@ -110,7 +103,7 @@ app = Flask(__name__)
 app.secret_key = SECRET_KEY
 
 
-init_db()
+# init_db()
 
 
 
@@ -231,30 +224,7 @@ def receive_sensor_data():
     if temperature is None or moisture is None:
         return jsonify({"error": "temperature and moisture required"}), 400
 
-    # --- Save to encrypted SQLAlchemy table ---
-    db = SessionLocal()
-    try:
-        reading = SensorReading(
-            device_id=device_id,
-            user_id=user_id,
-            moisture_cipher="",
-            temperature_cipher=""
-        )
-
-        reading.set_moisture(str(moisture))
-        reading.set_temperature(str(temperature))
-
-        db.add(reading)
-        db.commit()
-        print(f"[DB] Saved reading from {device_id}")
-
-    except Exception as e:
-        db.rollback()
-        print("[DB ERROR]", e)
-        return jsonify({"error": "Database error"}), 500
-
-    finally:
-        db.close()
+    
 
     # --- ALERT LOGIC (backend side) ---
     alert = None
@@ -321,18 +291,35 @@ def insights():
         seven_days_ago_ts = int((datetime.now(timezone.utc) - timedelta(days=7)).timestamp())
 
         cursor.execute("""
-            SELECT temperature, moisture_percent, timestamp
+            SELECT temperature_cipher, moisture_cipher, timestamp
             FROM sensor_readings
             WHERE timestamp >= %s
             ORDER BY timestamp DESC
         """, (seven_days_ago_ts,))
 
+
         rows = cursor.fetchall()
         for r in rows:
+            try:
+                temperature = fernet.decrypt(
+                    r["temperature_cipher"].encode()
+                ).decode()
+            except Exception:
+                temperature = None
+
+            try:
+                moisture = fernet.decrypt(
+                    r["moisture_cipher"].encode()
+                ).decode()
+            except Exception:
+                moisture = None
+
             readings_last_7_days.append({
-                "temperature": r["temperature"],
-                "moisture_percent": r["moisture_percent"],
-                "timestamp": datetime.fromtimestamp(int(r["timestamp"]), tz=timezone.utc),
+                "temperature": temperature,
+                "moisture_percent": moisture,
+                "timestamp": datetime.fromtimestamp(
+                    int(r["timestamp"]), tz=timezone.utc
+                ),
             })
 
     except Exception as e:
@@ -397,30 +384,52 @@ def history():
             start_ts = int(start_dt.timestamp())
             end_ts = int(end_dt.timestamp())
 
+            print(f"DEBUG: Querying between {start_ts} and {end_ts}")
+
             cursor.execute("""
                 SELECT * FROM sensor_readings
-                WHERE user_id = %s AND timestamp BETWEEN %s AND %s
-                ORDER BY timestamp DESC
-            """, (user_id, start_ts, end_ts))
-        else:
-            cursor.execute("""
-                SELECT * FROM sensor_readings
-                WHERE user_id = %s
                 ORDER BY timestamp DESC
                 LIMIT 100
-            """, (user_id,))
+            """)
+        else:
+            print(f"DEBUG: Querying all records for user {user_id}")
+            cursor.execute("""
+                SELECT * FROM sensor_readings
+                ORDER BY timestamp DESC
+                LIMIT 100
+            """)
 
         rows = cursor.fetchall()
+        print(f"DEBUG: Found {len(rows)} rows")
 
         if rows:
             for r in rows:
+                print(f"DEBUG: Processing row: {r}")
                 ts = datetime.fromtimestamp(int(r['timestamp']), tz=timezone.utc)
+
+                # decrypt temperature
+                try:
+                    temperature = fernet.decrypt(
+                        r['temperature_cipher'].encode()
+                    ).decode()
+                except Exception:
+                    temperature = "N/A"
+
+                # decrypt moisture
+                try:
+                    moisture = fernet.decrypt(
+                        r['moisture_cipher'].encode()
+                    ).decode()
+                except Exception:
+                    moisture = "N/A"
+
                 history_entries.append({
                     "type": "sensor",
                     "title": "Sensor Log Recorded",
-                    "details": f"Temperature: {r['temperature']}°C • Moisture: {r['moisture_percent']}%",
+                    "details": f"Temperature: {temperature}°C • Moisture: {moisture}%",
                     "timestamp": ts
                 })
+
         else:
             history_entries.append({
                 "type": "sensor",
