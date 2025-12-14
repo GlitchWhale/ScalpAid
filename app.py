@@ -414,10 +414,11 @@ def history():
             except:
                 temperature = "N/A"
 
-            try:
-                moisture = fernet.decrypt(r['moisture_cipher'].encode()).decode()
-            except:
-                moisture = "N/A"
+                # decrypt moisture
+                try:
+                    moisture = fernet.decrypt(r['moisture_cipher'].encode()).decode()
+                except:
+                    moisture = "N/A"
 
             history_entries.append({
                 "type": "sensor",
