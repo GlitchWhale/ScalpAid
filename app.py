@@ -20,6 +20,7 @@ from sqlalchemy import func
 from dotenv import load_dotenv
 from config import fernet
 
+
 load_dotenv()
 
 
@@ -372,7 +373,7 @@ def history():
     selected_date = request.args.get('date')
     history_entries = []
 
-    LOCAL_TZ = pytz.timezone("Europe/Dublin")  # ← CHANGE THIS IF NEEDED
+    LOCAL_TZ = pytz.timezone("Europe/Dublin")
 
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
@@ -381,11 +382,10 @@ def history():
         if selected_date:
             date_obj = datetime.strptime(selected_date, "%Y-%m-%d").date()
 
-            # Start and end of selected day IN LOCAL TIME
+            # Define start/end of that day in LOCAL time
             start_local = LOCAL_TZ.localize(datetime.combine(date_obj, datetime.min.time()))
             end_local = LOCAL_TZ.localize(datetime.combine(date_obj, datetime.max.time()))
 
-            # Convert to UTC timestamps for DB filtering
             start_ts = int(start_local.astimezone(timezone.utc).timestamp())
             end_ts = int(end_local.astimezone(timezone.utc).timestamp())
 
@@ -404,31 +404,29 @@ def history():
 
         rows = cursor.fetchall()
 
-        if rows:
-            for r in rows:
-                ts_utc = datetime.fromtimestamp(int(r["timestamp"]), tz=timezone.utc)
-                ts_local = ts_utc.astimezone(LOCAL_TZ)   # ← FIX: convert to Ireland time
+        for r in rows:
+            ts_utc = datetime.fromtimestamp(int(r["timestamp"]), tz=timezone.utc)
+            ts_local = ts_utc.astimezone(LOCAL_TZ)
 
-                # decrypt temperature
-                try:
-                    temperature = fernet.decrypt(r['temperature_cipher'].encode()).decode()
-                except:
-                    temperature = "N/A"
+            # Decrypt values
+            try:
+                temperature = fernet.decrypt(r['temperature_cipher'].encode()).decode()
+            except:
+                temperature = "N/A"
 
-                # decrypt moisture
-                try:
-                    moisture = fernet.decrypt(r['moisture_cipher'].encode()).decode()
-                except:
-                    moisture = "N/A"
+            try:
+                moisture = fernet.decrypt(r['moisture_cipher'].encode()).decode()
+            except:
+                moisture = "N/A"
 
-                history_entries.append({
-                    "type": "sensor",
-                    "title": "Sensor Log Recorded",
-                    "details": f"Temperature: {temperature}°C • Moisture: {moisture}%",
-                    "timestamp": ts_local   # ← FIX: show local time
-                })
+            history_entries.append({
+                "type": "sensor",
+                "title": "Sensor Log Recorded",
+                "details": f"Temperature: {temperature}°C • Moisture: {moisture}%",
+                "timestamp": ts_local
+            })
 
-        else:
+        if not rows:
             history_entries.append({
                 "type": "sensor",
                 "title": "No activity",
@@ -446,12 +444,12 @@ def history():
         try: conn.close()
         except: pass
 
-    # User context
+    # User context for AI
     db = SessionLocal()
     user = db.query(User).filter(User.id == session['user_id']).first()
     db.close()
 
-    # AI part
+    # 🔥 Restore AI insight generation
     ai_history_insights = None
     try:
         ai_history_insights = get_history_ai_insights(history_entries, user=user)
@@ -464,6 +462,7 @@ def history():
         selected_date=selected_date,
         ai_history_insights=ai_history_insights,
     )
+
 
 
 
